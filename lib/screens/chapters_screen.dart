@@ -25,26 +25,29 @@ class ChaptersScreen extends StatelessWidget {
           final chapterNum = index + 1;
           return InkWell(
             onTap: () {
-              context.read<BibleProvider>().loadVerses(book.id, chapterNum);
+              context.read<BibleProvider>().loadVerses(book, chapterNum);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => VersesScreen(
-                    bookName: book.name,
-                    chapterName: chapterNum.toString(),
-                  ),
+                  builder: (context) => const VersesScreen(),
                 ),
               );
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                ),
               ),
               child: Center(
                 child: Text(
                   chapterNum.toString(),
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                 ),
               ),
             ),

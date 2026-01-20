@@ -33,10 +33,21 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: TextField(
           controller: _controller,
-          decoration: const InputDecoration(
-            hintText: 'Search for a word...',
+          decoration: InputDecoration(
+            hintText: 'Search (e.g., Jesus, John 3:16)',
             border: InputBorder.none,
+            hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+            suffixIcon: _controller.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      _controller.clear();
+                      setState(() => _results = []);
+                    },
+                  )
+                : null,
           ),
+          onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _onSearch(),
         ),
         actions: [
@@ -49,7 +60,40 @@ class _SearchScreenState extends State<SearchScreen> {
       body: _isSearching
           ? const Center(child: CircularProgressIndicator())
           : _results.isEmpty
-              ? const Center(child: Text('No results found.'))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _controller.text.isEmpty
+                              ? 'Enter a word or reference to search'
+                              : 'No results found',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tip: Use references like "John 3:16" for precise results, or simple words to search your downloaded chapters.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _results.length,
@@ -60,7 +104,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       showHeader: true,
                       onBookmarkToggle: () {
                         context.read<BookmarkProvider>().toggleBookmark(verse);
-                        _onSearch();
+                        setState(() {
+                          final index = _results.indexOf(verse);
+                          if (index != -1) {
+                            _results[index] = verse.copyWith(isBookmarked: !verse.isBookmarked);
+                          }
+                        });
                       },
                     );
                   },

@@ -1,12 +1,16 @@
+enum Testament { oldTestament, newTestament }
+
 class Book {
   final String id; // Book ID like "GEN"
   final String name;
   final int chapterCount;
+  final Testament testament;
 
   Book({
     required this.id,
     required this.name,
     required this.chapterCount,
+    required this.testament,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -14,6 +18,7 @@ class Book {
       id: json['id'],
       name: json['name'],
       chapterCount: json['chapterCount'] ?? 0,
+      testament: json['testament'] == 'new' ? Testament.newTestament : Testament.oldTestament,
     );
   }
 
@@ -21,6 +26,7 @@ class Book {
     return {
       'id': id,
       'name': name,
+      'testament': testament == Testament.newTestament ? 'new' : 'old',
     };
   }
 
@@ -29,6 +35,7 @@ class Book {
       id: map['id'],
       name: map['name'],
       chapterCount: 0, // Not stored in DB
+      testament: map['testament'] == 'new' ? Testament.newTestament : Testament.oldTestament,
     );
   }
 }

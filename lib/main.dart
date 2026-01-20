@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/bible_provider.dart';
 import 'providers/bookmark_provider.dart';
@@ -8,6 +10,11 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
   
   final bibleProvider = BibleProvider();
   // Don't await here to avoid blank screen if network is slow
@@ -33,7 +40,7 @@ class AmharicBibleApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'አማርኛ መጽሐፍ ቅዱስ',
+          title: 'Holy Bible',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme(themeProvider.fontSize),
           darkTheme: AppTheme.darkTheme(themeProvider.fontSize),
