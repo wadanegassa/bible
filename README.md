@@ -1,47 +1,60 @@
-# Amharic Bible App (የአማርኛ መጽሐፍ ቅዱስ)
+# Holy Bible (Amharic & English)
 
-A modern, fast, and offline-first Amharic Bible app built with Flutter.
+A comprehensive Flutter application designed for reading and studying the Bible in Amharic and English. This app offers a clean, user-friendly interface with features for reading chapters, searching for verses, managing bookmarks, and customizing the reading experience.
 
 ## Features
 
-- **Beautiful Typography**: Optimized for Amharic text using Noto Sans Ethiopic.
-- **Offline Reading**: Works 100% offline once installed.
-- **Clean Navigation**: Simple Old/New Testament book selection, chapter grid, and verse lists.
-- **Smart Search**: Find any verse by Amharic words instantly.
-- **Bookmarks**: Save your favorite verses for easy access.
-- **Material 3 Design**: Supports Light and Dark modes with adjustable font sizes.
+*   **Bilingual Support**: Access the Bible in both Amharic and English.
+*   **Easy Navigation**: Browse books, chapters, and verses seamlessly.
+*   **Search Functionality**: Quickly find specific verses or keywords.
+*   **Bookmarks**: Save your favorite verses for quick access later.
+*   **Customizable Theme**:
+    *   **Dark/Light Mode**: Toggle between themes for comfortable reading in any environment.
+    *   **Font Size Adjustment**: Increase or decrease text size to suit your preference.
+*   **Clean Architecture**: Built with a maintainable and scalable code structure.
 
-## 🧱 Tech Stack
+## Tech Stack & Tools
 
-- **Framework**: Flutter
-- **Design**: Material 3
-- **State Management**: Provider
-- **Database**: SQLite (sqflite)
-- **Persistence**: SharedPreferences (for settings)
+*   **Framework**: [Flutter](https://flutter.dev/) - UI toolkit for building natively compiled applications.
+*   **Language**: [Dart](https://dart.dev/) - The programming language used for Flutter.
+*   **State Management**: [Provider](https://pub.dev/packages/provider) - For managing application state effectively.
+*   **Local Database**: [Sqflite](https://pub.dev/packages/sqflite) - For storing bookmarks locally on the device.
+*   **Networking**: [http](https://pub.dev/packages/http) - For making API requests to fetch Bible content.
+*   **UI Components**: Material Design widgets for a native Android/iOS feel.
 
-## 🚀 Getting Started
+## Project Structure
 
-1.  **Clone the repository**:
+The project follows a clean architecture pattern to separate concerns and ensure maintainability:
+
+```
+lib/
+├── core/           # Core utilities, constants, and theme configurations
+├── data/           # Data layer: API services, local DB, models, and repositories
+├── providers/      # State management logic
+├── screens/        # UI screens and pages
+└── widgets/        # Reusable UI components
+```
+
+## Setup Instructions
+
+To get up and running with the project locally:
+
+1.  **Prerequisites**:
+    *   Make sure you have [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
+    *   Ensure setup for your target device (Android Studio/Xcode).
+
+2.  **Clone the Repository**:
     ```bash
-    git clone https://github.com/example/amharicbible.git
+    git clone <repository-url>
+    cd amharicbible
     ```
-2.  **Install dependencies**:
+
+3.  **Install Dependencies**:
     ```bash
     flutter pub get
     ```
-3.  **Run the app**:
+
+4.  **Run the App**:
     ```bash
     flutter run
     ```
-
-## 📂 Project Structure
-
-- `lib/core`: Theme and constants.
-- `lib/data`: Models, SQLite helper, and repositories.
-- `lib/providers`: State management logic.
-- `lib/screens`: All UI screens.
-- `lib/widgets`: Reusable UI components.
-
-## 📖 Bible Data
-
-The app initializes its local SQLite database from `assets/data/bible.json` on the first launch. This ensures all content is available offline immediately.
