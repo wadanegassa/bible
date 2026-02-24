@@ -4,19 +4,25 @@ import '../data/repositories/bible_repository.dart';
 
 class BibleProvider with ChangeNotifier {
   final BibleRepository _repository = BibleRepository();
-
+  
   List<Book> _books = [];
   List<Verse> _verses = [];
-  bool _isLoading = true;
+  List<Verse> _bookmarks = [];
+  List<Verse> _searchResults = [];
+  bool _isLoading = false;
   String? _errorMessage;
+  String _currentTranslation = 'KJV'; // Default
   
-  Book? _currentBook;
-  int? _currentChapter;
+  Book? _currentBook; // Keep for next/prev chapter logic
+  int? _currentChapter; // Keep for next/prev chapter logic
 
   List<Book> get books => _books;
   List<Verse> get verses => _verses;
+  List<Verse> get bookmarks => _bookmarks;
+  List<Verse> get searchResults => _searchResults;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String get currentTranslation => _currentTranslation;
   Book? get currentBook => _currentBook;
   int? get currentChapter => _currentChapter;
 
@@ -24,52 +30,53 @@ class BibleProvider with ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    
+
     try {
-      _books = await _repository.getBooks();
-      if (_books.isEmpty) {
-        _errorMessage = "No books loaded.";
-      }
-    } catch (e) {
-      _errorMessage = "Error: $e";
-    } finally {
+      await _repository.ensureInitialized(translation: _currentTranslation);
+      _books = _repository.getBooks(_currentTranslation);
+      await loadBookmarks();
       _isLoading = false;
-      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Failed to load Bible: $e';
     }
+    notifyListeners();
   }
 
-  Future<void> loadVerses(Book book, int chapter) async {
+  Future<void> setTranslation(String translation) async {
+    if (_currentTranslation == translation) return;
+    _currentTranslation = translation;
+    await init();
+  }
+
+  Future<void> loadChapter(String bookId, int chapter) async {
     _isLoading = true;
-    _verses = [];
     _errorMessage = null;
-    _currentBook = book;
-    _currentChapter = chapter;
     notifyListeners();
-    
+
     try {
-      _verses = await _repository.getVerses(book.id, chapter);
-      if (_verses.isEmpty) {
-        _errorMessage = "Could not load verses. Check your connection.";
-      }
-    } catch (e) {
-      _errorMessage = "Error loading verses: $e";
-    } finally {
+      _verses = await _repository.getVerses(bookId, chapter, translation: _currentTranslation);
+      // Update _currentBook and _currentChapter based on the loaded chapter
+      _currentBook = _books.firstWhere((b) => b.id == bookId, orElse: () => Book(id: '', name: '', chapterCount: 0, testament: Testament.oldTestament));
+      _currentChapter = chapter;
       _isLoading = false;
-      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Failed to load chapter: $e';
     }
+    notifyListeners();
   }
 
   void nextChapter() {
     if (_currentBook == null || _currentChapter == null) return;
     
     if (_currentChapter! < _currentBook!.chapterCount) {
-      loadVerses(_currentBook!, _currentChapter! + 1);
+      loadChapter(_currentBook!.id, _currentChapter! + 1);
     } else {
-      // Move to next book
       final currentIndex = _books.indexOf(_currentBook!);
       if (currentIndex != -1 && currentIndex < _books.length - 1) {
         final nextBook = _books[currentIndex + 1];
-        loadVerses(nextBook, 1);
+        loadChapter(nextBook.id, 1);
       }
     }
   }
@@ -78,62 +85,58 @@ class BibleProvider with ChangeNotifier {
     if (_currentBook == null || _currentChapter == null) return;
     
     if (_currentChapter! > 1) {
-      loadVerses(_currentBook!, _currentChapter! - 1);
+      loadChapter(_currentBook!.id, _currentChapter! - 1);
     } else {
-      // Move to previous book
       final currentIndex = _books.indexOf(_currentBook!);
       if (currentIndex > 0) {
         final prevBook = _books[currentIndex - 1];
-        loadVerses(prevBook, prevBook.chapterCount);
+        loadChapter(prevBook.id, prevBook.chapterCount);
       }
     }
   }
 
-  Future<List<Verse>> search(String query) async {
-    if (query.isEmpty) return [];
-    
-    final trimmedQuery = query.trim();
-    
-    // Try to parse as reference: "Book Chapter" or "Book Chapter:Verse"
-    // Supports English and potentially some Amharic characters (simplified regex)
-    final refMatch = RegExp(r'^(.+?)\s+(\d+)(?::(\d+))?$').firstMatch(trimmedQuery);
-    
-    if (refMatch != null) {
-      final bookName = refMatch.group(1)!.trim().toLowerCase();
-      final chapter = int.parse(refMatch.group(2)!);
-      final verseNum = refMatch.group(3) != null ? int.parse(refMatch.group(3)!) : null;
-      
-      // Try to find the book by name or ID
-      final book = _books.firstWhere(
-        (b) => b.name.toLowerCase() == bookName || b.id.toLowerCase() == bookName,
-        orElse: () => Book(id: '', name: '', chapterCount: 0, testament: Testament.oldTestament),
-      );
-      
-      if (book.id.isNotEmpty) {
-        try {
-          final chapterVerses = await _repository.getVerses(book.id, chapter);
-          if (verseNum != null) {
-            return chapterVerses.where((v) => v.verse == verseNum).toList();
-          }
-          return chapterVerses;
-        } catch (_) {
-          // Fallback to keyword search if API fetch fails
-        }
-      }
+  Future<void> search(String query) async {
+    if (query.isEmpty) {
+      _searchResults = [];
+      notifyListeners();
+      return;
     }
-    
-    return await _repository.search(query);
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _searchResults = await _repository.search(query, translation: _currentTranslation);
+      _isLoading = false;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Search failed: $e';
+    }
+    notifyListeners();
   }
 
   Future<void> toggleBookmark(Verse verse) async {
-    // 1. Update Repository (DB)
-    await _repository.toggleBookmark(verse);
-    
-    // 2. Update Local State (List<Verse>)
-    final index = _verses.indexWhere((v) => v.id == verse.id);
-    if (index != -1) {
-      _verses[index] = verse.copyWith(isBookmarked: !verse.isBookmarked);
+    try {
+      await _repository.toggleBookmark(verse);
+      await loadBookmarks();
+      
+      final index = _verses.indexWhere((v) => v.dbId == verse.dbId);
+      if (index != -1) {
+        _verses[index] = verse.copyWith(isBookmarked: !verse.isBookmarked);
+      }
       notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to update bookmark: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadBookmarks() async {
+    try {
+      _bookmarks = await _repository.getBookmarks(translation: _currentTranslation);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading bookmarks: $e');
     }
   }
 }
