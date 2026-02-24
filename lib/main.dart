@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/bible_provider.dart';
-import 'providers/bookmark_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 
@@ -24,7 +23,6 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => bibleProvider),
-        ChangeNotifierProvider(create: (_) => BookmarkProvider()..loadBookmarks()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const AmharicBibleApp(),
