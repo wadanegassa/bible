@@ -70,6 +70,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/data/
+    - assets/data/bible_en_kjv.json
+    - assets/data/bible_am_full.json
     - assets/icon/
 flutter_launcher_icons:
   android: true
