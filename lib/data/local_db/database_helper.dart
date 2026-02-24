@@ -20,8 +20,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'bible_v3.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -35,11 +36,18 @@ class DatabaseHelper {
         verse INTEGER,
         text TEXT,
         is_bookmarked INTEGER DEFAULT 0,
-        UNIQUE(book_id, chapter, verse)
+        translation TEXT DEFAULT 'KJV'
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_verses_lookup ON verses (book_id, chapter)');
+    await db.execute('CREATE INDEX idx_verses_lookup ON verses (book_id, chapter, translation)');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE verses ADD COLUMN translation TEXT DEFAULT "KJV"');
+      await db.execute('CREATE INDEX idx_verses_lookup_v2 ON verses (book_id, chapter, translation)');
+    }
   }
 
   Future<void> insertVerse(Map<String, dynamic> verse) async {
@@ -47,36 +55,110 @@ class DatabaseHelper {
     await db.insert('verses', verse, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<Map<String, dynamic>>> getVerses(String bookId, int chapter) async {
+  Future<List<Map<String, dynamic>>> getVerses(String bookId, int chapter, {String translation = 'KJV'}) async {
     final db = await database;
     return await db.query(
       'verses',
-      where: 'book_id = ? AND chapter = ?',
-      whereArgs: [bookId, chapter],
+      where: 'book_id = ? AND chapter = ? AND translation = ?',
+      whereArgs: [bookId, chapter, translation],
+      orderBy: 'verse ASC',
     );
   }
 
-  Future<void> toggleBookmark(String bookId, int chapter, int verse, bool isBookmarked) async {
+  Future<void> toggleBookmark(int dbId, bool isBookmarked) async {
     final db = await database;
     await db.update(
       'verses',
       {'is_bookmarked': isBookmarked ? 1 : 0},
-      where: 'book_id = ? AND chapter = ? AND verse = ?',
-      whereArgs: [bookId, chapter, verse],
+      where: 'db_id = ?',
+      whereArgs: [dbId],
     );
   }
 
-  Future<List<Map<String, dynamic>>> getBookmarks() async {
+  Future<List<Map<String, dynamic>>> getBookmarks({String translation = 'KJV'}) async {
     final db = await database;
-    return await db.query('verses', where: 'is_bookmarked = 1');
+    return await db.query(
+      'verses', 
+      where: 'is_bookmarked = 1 AND translation = ?', 
+      whereArgs: [translation]
+    );
   }
 
-  Future<List<Map<String, dynamic>>> searchVerses(String query) async {
+  Future<List<Map<String, dynamic>>> searchVerses(String query, {String translation = 'KJV'}) async {
     final db = await database;
     return await db.query(
       'verses',
-      where: 'text LIKE ?',
-      whereArgs: ['%$query%'],
+      where: 'text LIKE ? AND translation = ?',
+      whereArgs: ['%$query%', translation],
+      limit: 50,
     );
+  }
+
+  Future<bool> isTranslationPopulated(String translation) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM verses WHERE translation = ? LIMIT 1',
+      [translation],
+    );
+    final count = Sqflite.firstIntValue(result) ?? 0;
+    return count > 0;
+  }
+
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('verses');
+  }
+
+  Future<void> prepopulate(List<dynamic> data, String translation) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      if (translation == 'KJV') {
+        for (var book in data) {
+          final bookName = book['name'];
+          final abbrev = book['abbrev'] as String;
+          final chapters = book['chapters'] as List<dynamic>;
+          
+          for (int cIndex = 0; cIndex < chapters.length; cIndex++) {
+            final chapterNum = cIndex + 1;
+            final verses = chapters[cIndex] as List<dynamic>;
+            
+            for (int vIndex = 0; vIndex < verses.length; vIndex++) {
+              await txn.insert('verses', {
+                'book_id': abbrev.toUpperCase(),
+                'book_name': bookName,
+                'chapter': chapterNum,
+                'verse': vIndex + 1,
+                'text': verses[vIndex].toString().trim(),
+                'is_bookmarked': 0,
+                'translation': translation,
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      } else if (translation == 'AMHARIC') {
+        final books = data;
+        for (var book in books) {
+          final bookName = book['title'];
+          final chapters = book['chapters'] as List<dynamic>;
+          
+          for (var chapterData in chapters) {
+            final chapterNum = int.tryParse(chapterData['chapter'].toString()) ?? 0;
+            final verses = chapterData['verses'] as List<dynamic>;
+            
+            for (int i = 0; i < verses.length; i++) {
+              await txn.insert('verses', {
+                'book_id': bookName, // Amharic uses title as ID in previous logic
+                'book_name': bookName,
+                'chapter': chapterNum,
+                'verse': i + 1,
+                'text': verses[i].toString().trim(),
+                'is_bookmarked': 0,
+                'translation': translation,
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      }
+    });
   }
 }
