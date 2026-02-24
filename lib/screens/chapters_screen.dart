@@ -25,7 +25,7 @@ class ChaptersScreen extends StatelessWidget {
           final chapterNum = index + 1;
           return InkWell(
             onTap: () {
-              context.read<BibleProvider>().loadVerses(book, chapterNum);
+              context.read<BibleProvider>().loadChapter(book.id, chapterNum);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -46,7 +46,7 @@ class ChaptersScreen extends StatelessWidget {
                   chapterNum.toString(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.primary, // Kept original color property
                       ),
                 ),
               ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
-import '../data/models/bible_models.dart';
-import '../providers/bookmark_provider.dart';
 import '../widgets/verse_tile.dart';
 
 class VersesScreen extends StatelessWidget {
