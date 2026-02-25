@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
 import '../widgets/verse_tile.dart';
+import '../widgets/verse_action_toolbar.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -27,7 +28,7 @@ class _SearchScreenState extends State<SearchScreen> {
           decoration: InputDecoration(
             hintText: 'Search (e.g., Jesus, John 3:16)',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+            hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear, size: 20),
@@ -66,7 +67,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Icon(
                       Icons.search_off,
                       size: 64,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -94,6 +95,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 verse: verse,
                 showHeader: true,
                 onBookmarkToggle: () => bible.toggleBookmark(verse),
+                onTap: () => VerseActionToolbar.show(context, verse, bible),
               );
             },
           );

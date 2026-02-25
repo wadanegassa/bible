@@ -12,9 +12,17 @@ class BibleProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   String _currentTranslation = 'KJV'; // Default
+  Set<String> _readChapters = {}; // Track chapters read in this session (simple version)
   
   Book? _currentBook; // Keep for next/prev chapter logic
   int? _currentChapter; // Keep for next/prev chapter logic
+
+  Map<String, dynamic> get readingStats => {
+    'totalBookmarks': _bookmarks.length,
+    'totalHighlights': _verses.where((v) => v.highlightColor != null).length, // Current view only for now
+    'chaptersRead': _readChapters.length,
+    'currentBookProgress': bookProgress,
+  };
 
   List<Book> get books => _books;
   List<Verse> get verses => _verses;
@@ -26,6 +34,11 @@ class BibleProvider with ChangeNotifier {
   Book? get currentBook => _currentBook;
   int? get currentChapter => _currentChapter;
 
+  double get bookProgress {
+    if (_currentBook == null || _currentChapter == null || _currentBook!.chapterCount == 0) return 0.0;
+    return _currentChapter! / _currentBook!.chapterCount;
+  }
+
   Future<void> init() async {
     _isLoading = true;
     _errorMessage = null;
@@ -35,7 +48,13 @@ class BibleProvider with ChangeNotifier {
       await _repository.ensureInitialized(translation: _currentTranslation);
       _books = _repository.getBooks(_currentTranslation);
       await loadBookmarks();
-      _isLoading = false;
+      
+      // Load default chapter if none selected
+      if (_currentBook == null && _books.isNotEmpty) {
+        await loadChapter(_books.first.id, 1);
+      } else {
+        _isLoading = false;
+      }
     } catch (e) {
       _isLoading = false;
       _errorMessage = 'Failed to load Bible: $e';
@@ -59,6 +78,7 @@ class BibleProvider with ChangeNotifier {
       // Update _currentBook and _currentChapter based on the loaded chapter
       _currentBook = _books.firstWhere((b) => b.id == bookId, orElse: () => Book(id: '', name: '', chapterCount: 0, testament: Testament.oldTestament));
       _currentChapter = chapter;
+      _readChapters.add('$bookId.$chapter'); // Mark as read
       _isLoading = false;
     } catch (e) {
       _isLoading = false;
@@ -127,6 +147,21 @@ class BibleProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to update bookmark: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateHighlight(Verse verse, String? color) async {
+    try {
+      await _repository.updateHighlight(verse, color);
+      
+      final index = _verses.indexWhere((v) => v.dbId == verse.dbId);
+      if (index != -1) {
+        _verses[index] = verse.copyWith(highlightColor: color, clearHighlight: color == null);
+      }
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to update highlight: $e';
       notifyListeners();
     }
   }

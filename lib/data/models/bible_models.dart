@@ -58,6 +58,7 @@ class Verse {
   final int verse;
   final String text;
   final bool isBookmarked;
+  final String? highlightColor; // Added for highlighting
 
   Verse({
     this.dbId,
@@ -67,6 +68,7 @@ class Verse {
     required this.verse,
     required this.text,
     this.isBookmarked = false,
+    this.highlightColor,
   });
 
   factory Verse.fromJson(Map<String, dynamic> json) {
@@ -87,6 +89,7 @@ class Verse {
       'verse': verse,
       'text': text,
       'is_bookmarked': isBookmarked ? 1 : 0,
+      'highlight_color': highlightColor,
     };
   }
 
@@ -99,10 +102,11 @@ class Verse {
       verse: map['verse'],
       text: map['text'],
       isBookmarked: map['is_bookmarked'] == 1,
+      highlightColor: map['highlight_color'],
     );
   }
 
-  Verse copyWith({bool? isBookmarked}) {
+  Verse copyWith({bool? isBookmarked, String? highlightColor, bool clearHighlight = false}) {
     return Verse(
       dbId: dbId,
       bookId: bookId,
@@ -111,6 +115,7 @@ class Verse {
       verse: verse,
       text: text,
       isBookmarked: isBookmarked ?? this.isBookmarked,
+      highlightColor: clearHighlight ? null : (highlightColor ?? this.highlightColor),
     );
   }
 

@@ -20,7 +20,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'bible_v3.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -36,7 +36,8 @@ class DatabaseHelper {
         verse INTEGER,
         text TEXT,
         is_bookmarked INTEGER DEFAULT 0,
-        translation TEXT DEFAULT 'KJV'
+        translation TEXT DEFAULT 'KJV',
+        highlight_color TEXT
       )
     ''');
 
@@ -48,6 +49,19 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE verses ADD COLUMN translation TEXT DEFAULT "KJV"');
       await db.execute('CREATE INDEX idx_verses_lookup_v2 ON verses (book_id, chapter, translation)');
     }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE verses ADD COLUMN highlight_color TEXT');
+    }
+  }
+
+  Future<void> updateHighlight(int dbId, String? color) async {
+    final db = await database;
+    await db.update(
+      'verses',
+      {'highlight_color': color},
+      where: 'db_id = ?',
+      whereArgs: [dbId],
+    );
   }
 
   Future<void> insertVerse(Map<String, dynamic> verse) async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
 import '../widgets/verse_tile.dart';
+import '../widgets/verse_action_toolbar.dart';
 
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
@@ -24,6 +25,7 @@ class BookmarksScreen extends StatelessWidget {
                 verse: verse,
                 showHeader: true,
                 onBookmarkToggle: () => bible.toggleBookmark(verse),
+                onTap: () => VerseActionToolbar.show(context, verse, bible),
               );
             },
           );

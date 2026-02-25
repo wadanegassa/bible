@@ -173,6 +173,10 @@ class BibleRepository {
     await _dbHelper.toggleBookmark(verse.dbId!, !verse.isBookmarked);
   }
 
+  Future<void> updateHighlight(Verse verse, String? color) async {
+    await _dbHelper.updateHighlight(verse.dbId!, color);
+  }
+
   Future<List<Verse>> search(String query, {String translation = 'KJV'}) async {
     final data = await _dbHelper.searchVerses(query, translation: translation);
     return data.map((v) => Verse.fromMap(v)).toList();

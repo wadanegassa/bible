@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
 import '../widgets/verse_tile.dart';
+import '../widgets/verse_action_toolbar.dart';
 
 class VersesScreen extends StatelessWidget {
   const VersesScreen({super.key});
@@ -43,6 +44,7 @@ class VersesScreen extends StatelessWidget {
                           onBookmarkToggle: () {
                             bible.toggleBookmark(verse);
                           },
+                          onTap: () => VerseActionToolbar.show(context, verse, bible),
                         );
                       },
                     ),
@@ -54,14 +56,14 @@ class VersesScreen extends StatelessWidget {
                 FloatingActionButton(
                   heroTag: 'prev',
                   onPressed: () => bible.prevChapter(),
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   child: const Icon(Icons.arrow_back),
                 ),
                 FloatingActionButton(
                   heroTag: 'next',
                   onPressed: () => bible.nextChapter(),
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   child: const Icon(Icons.arrow_forward),
                 ),

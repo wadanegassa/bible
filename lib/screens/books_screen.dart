@@ -47,7 +47,7 @@ class _BooksScreenState extends State<BooksScreen> {
                     ElevatedButton(
                       onPressed: () => bible.init(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                        backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                         foregroundColor: Theme.of(context).colorScheme.primary,
                         elevation: 0,
                       ),
@@ -92,7 +92,7 @@ class _BooksScreenState extends State<BooksScreen> {
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
