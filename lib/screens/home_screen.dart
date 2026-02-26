@@ -7,6 +7,7 @@ import '../widgets/verse_tile.dart';
 import '../widgets/royal_navigator_hub.dart';
 import '../widgets/verse_action_toolbar.dart';
 import '../widgets/verse_card_creator.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,9 +68,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      sliver: bible.isLoading
-                          ? const SliverFillRemaining(
-                              child: Center(child: CircularProgressIndicator()),
+                      sliver: bible.isInitializing
+                          ? SliverFillRemaining(
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const CircularProgressIndicator(),
+                                    if (bible.loadingMessage != null) ...[
+                                      const SizedBox(height: 24),
+                                      Text(
+                                        bible.loadingMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
                             )
                           : bible.errorMessage != null
                               ? SliverFillRemaining(child: _buildErrorView(bible.errorMessage!))
@@ -204,6 +223,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       actions: [
+        IconButton(
+          icon: Icon(Icons.search, color: theme.colorScheme.primary),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+          },
+        ),
         _buildRoyalLanguagePicker(context, bible),
         const SizedBox(width: 12),
       ],
@@ -213,27 +239,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRoyalLanguagePicker(BuildContext context, BibleProvider bible) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: PopupMenuButton<String>(
-        icon: Icon(Icons.translate, color: theme.colorScheme.primary, size: 20),
-        tooltip: 'Select Language',
-        onSelected: (String language) {
-          bible.setTranslation(language);
-        },
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(
-            value: 'AMHARIC',
-            child: _buildPopupItem(Icons.language, 'አማርኛ (Amharic)'),
+    final currentVersion = bible.availableVersions.firstWhere((v) => v.id == bible.currentTranslation);
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF2D0A0A), // Dark red/black background from screenshot
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: PopupMenuButton<String>(
+          offset: const Offset(0, 45),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  currentVersion.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
+              ],
+            ),
           ),
-          PopupMenuItem<String>(
-            value: 'KJV',
-            child: _buildPopupItem(Icons.language, 'English (KJV)'),
-          ),
-        ],
+          onSelected: (String versionId) {
+            bible.setTranslation(versionId);
+          },
+          itemBuilder: (BuildContext context) => bible.availableVersions
+              .where((v) => v.isDownloaded)
+              .map((version) => PopupMenuItem<String>(
+                    value: version.id,
+                    child: _buildPopupItem(
+                      version.id.contains('AMHARIC') ? Icons.language : Icons.translate,
+                      version.fullname,
+                    ),
+                  ))
+              .toList(),
+        ),
       ),
     );
   }

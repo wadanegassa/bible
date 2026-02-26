@@ -19,7 +19,18 @@ class VersesScreen extends StatelessWidget {
             title: Text('$bookName $chapterNum'),
           ),
           body: bible.isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      if (bible.loadingMessage != null) ...[
+                        const SizedBox(height: 16),
+                        Text(bible.loadingMessage!, textAlign: TextAlign.center),
+                      ],
+                    ],
+                  ),
+                )
               : bible.errorMessage != null
                   ? Center(
                       child: Padding(

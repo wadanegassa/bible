@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
 import '../widgets/verse_tile.dart';
@@ -16,25 +17,31 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onSearch() {
     if (_controller.text.isEmpty) return;
+    HapticFeedback.lightImpact();
     context.read<BibleProvider>().search(_controller.text);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.98),
       appBar: AppBar(
+        backgroundColor: Colors.black.withValues(alpha: 0.8),
         title: TextField(
           controller: _controller,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
           decoration: InputDecoration(
             hintText: 'Search (e.g., Jesus, John 3:16)',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, size: 20),
+                    icon: const Icon(Icons.clear, size: 20, color: Colors.white),
                     onPressed: () {
                       _controller.clear();
                       context.read<BibleProvider>().search('');
+                      setState(() {});
                     },
                   )
                 : null,
@@ -44,20 +51,36 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(Icons.search, color: theme.colorScheme.primary),
             onPressed: _onSearch,
           ),
         ],
       ),
       body: Consumer<BibleProvider>(
         builder: (context, bible, child) {
+          if (bible.isInitializing) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  Text(
+                    bible.loadingMessage ?? 'Preparing Bible database...',
+                    style: TextStyle(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+            );
+          }
+
           if (bible.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final results = bible.searchResults;
 
-          if (results.isEmpty) {
+          if (results.isEmpty && !bible.isLoading) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
@@ -65,9 +88,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.search_off,
+                      Icons.search_outlined,
                       size: 64,
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -75,9 +98,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           ? 'Enter a word to search'
                           : 'No results found',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.5),
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
                       ),
                     ),
                   ],
@@ -87,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: results.length,
             itemBuilder: (context, index) {
               final verse = results[index];
