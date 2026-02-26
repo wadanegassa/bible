@@ -75,77 +75,82 @@ class BibleRepository {
     Book(id: 'RE', name: 'Revelation', chapterCount: 22, testament: Testament.newTestament),
   ];
 
-  final List<Book> _amharicBooks = [
-    Book(id: 'ኦሪት ዘፍጥረት', name: 'ኦሪት ዘፍጥረት', chapterCount: 50, testament: Testament.oldTestament),
-    Book(id: 'ኦሪት ዘጸአት', name: 'ኦሪት ዘጸአት', chapterCount: 40, testament: Testament.oldTestament),
-    Book(id: 'ኦሪት ዘሌዋውያን', name: 'ኦሪት ዘሌዋውያን', chapterCount: 27, testament: Testament.oldTestament),
-    Book(id: 'ኦሪት ዘኍልቍ', name: 'ኦሪት ዘኍልቍ', chapterCount: 36, testament: Testament.oldTestament),
-    Book(id: 'ኦሪት ዘዳግም', name: 'ኦሪት ዘዳግም', chapterCount: 34, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ኢያሱ ወልደ ነዌ', name: 'መጽሐፈ ኢያሱ ወልደ ነዌ', chapterCount: 24, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ መሣፍንት', name: 'መጽሐፈ መሣፍንት', chapterCount: 21, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ሩት', name: 'መጽሐፈ ሩት', chapterCount: 4, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ሳሙኤል ቀዳማዊ', name: 'መጽሐፈ ሳሙኤል ቀዳማዊ', chapterCount: 31, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ሳሙኤል ካልዕ', name: 'መጽሐፈ ሳሙኤል ካልዕ', chapterCount: 24, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ነገሥት ቀዳማዊ', name: 'መጽሐፈ ነገሥት ቀዳማዊ', chapterCount: 22, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ነገሥት ካልዕ', name: 'መጽሐፈ ነገሥት ካልዕ', chapterCount: 25, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ዜና መዋዕል ቀዳማዊ', name: 'መጽሐፈ ዜና መዋዕል ቀዳማዊ', chapterCount: 29, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ዜና መዋዕል ካልዕ', name: 'መጽሐፈ ዜና መዋዕል ካልዕ', chapterCount: 36, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ዕዝራ', name: 'መጽሐፈ ዕዝራ', chapterCount: 10, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ነህምያ', name: 'መጽሐፈ ነህምያ', chapterCount: 13, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ አስቴር', name: 'መጽሐፈ አስቴር', chapterCount: 10, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ኢዮብ', name: 'መጽሐፈ ኢዮብ', chapterCount: 42, testament: Testament.oldTestament),
-    Book(id: 'መዝሙረ ዳዊት', name: 'መዝሙረ ዳዊት', chapterCount: 150, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ ምሳሌ', name: 'መጽሐፈ ምሳሌ', chapterCount: 31, testament: Testament.oldTestament),
-    Book(id: 'መጽሐፈ መክብብ', name: 'መጽሐፈ መክብብ', chapterCount: 12, testament: Testament.oldTestament),
-    Book(id: 'መኃልየ መኃልይ ዘሰሎሞን', name: 'መኃልየ መኃልይ ዘሰሎሞን', chapterCount: 8, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ኢሳይያስ', name: 'ትንቢተ ኢሳይያስ', chapterCount: 66, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ኤርምያስ', name: 'ትንቢተ ኤርምያስ', chapterCount: 52, testament: Testament.oldTestament),
-    Book(id: 'ሰቆቃወ ኤርምያስ', name: 'ሰቆቃወ ኤርምያስ', chapterCount: 5, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሕዝቅኤል', name: 'ትንቢተ ሕዝቅኤል', chapterCount: 48, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ዳንኤል', name: 'ትንቢተ ዳንኤል', chapterCount: 12, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሆሴዕ', name: 'ትንቢተ ሆሴዕ', chapterCount: 14, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ኢዩኤል', name: 'ትንቢተ ኢዩኤል', chapterCount: 3, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ አሞጽ', name: 'ትንቢተ አሞጽ', chapterCount: 9, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ አብድዩ', name: 'ትንቢተ አብድዩ', chapterCount: 1, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ዮናስ', name: 'ትንቢተ ዮናስ', chapterCount: 4, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሚክያስ', name: 'ትንቢተ ሚክያስ', chapterCount: 7, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ናሆም', name: 'ትንቢተ ናሆም', chapterCount: 3, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ዕንባቆም', name: 'ትንቢተ ዕንባቆም', chapterCount: 3, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሶፎንያስ', name: 'ትንቢተ ሶፎንያስ', chapterCount: 3, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሐጌ', name: 'ትንቢተ ሐጌ', chapterCount: 2, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ዘካርያስ', name: 'ትንቢተ ዘካርያስ', chapterCount: 14, testament: Testament.oldTestament),
-    Book(id: 'ትንቢተ ሚልክያስ', name: 'ትንቢተ ሚልክያስ', chapterCount: 4, testament: Testament.oldTestament),
-    Book(id: 'የማቴዎስ ወንጌል', name: 'የማቴዎስ ወንጌል', chapterCount: 28, testament: Testament.newTestament),
-    Book(id: 'የማርቆስ ወንጌል', name: 'የማርቆስ ወንጌል', chapterCount: 16, testament: Testament.newTestament),
-    Book(id: 'የሉቃስ ወንጌል', name: 'የሉቃስ ወንጌል', chapterCount: 24, testament: Testament.newTestament),
-    Book(id: 'የዮሐንስ ወንጌል', name: 'የዮሐንስ ወንጌል', chapterCount: 21, testament: Testament.newTestament),
-    Book(id: 'የሐዋርያት ሥራ', name: 'የሐዋርያት ሥራ', chapterCount: 28, testament: Testament.newTestament),
-    Book(id: 'ወደ ሮሜ ሰዎች', name: 'ወደ ሮሜ ሰዎች', chapterCount: 16, testament: Testament.newTestament),
-    Book(id: '1ኛ ወደ ቆሮንቶስ ሰዎች', name: '1ኛ ወደ ቆሮንቶስ ሰዎች', chapterCount: 16, testament: Testament.newTestament),
-    Book(id: '2ኛ ወደ ቆሮንቶስ ሰዎች', name: '2ኛ ወደ ቆሮንቶስ ሰዎች', chapterCount: 13, testament: Testament.newTestament),
-    Book(id: 'ወደ ገላትያ ሰዎች', name: 'ወደ ገላትያ ሰዎች', chapterCount: 6, testament: Testament.newTestament),
-    Book(id: 'ወደ ኤፌሶን ሰዎች', name: 'ወደ ኤፌሶን ሰዎች', chapterCount: 6, testament: Testament.newTestament),
-    Book(id: 'ወደ ፊልጵስዩስ ሰዎች', name: 'ወደ ፊልጵስዩስ ሰዎች', chapterCount: 4, testament: Testament.newTestament),
-    Book(id: 'ወደ ቆላስይስ ሰዎች', name: 'ወደ ቆላስይስ ሰዎች', chapterCount: 4, testament: Testament.newTestament),
-    Book(id: '1ኛ ወደ ተሰሎንቄ ሰዎች', name: '1ኛ ወደ ተሰሎንቄ ሰዎች', chapterCount: 5, testament: Testament.newTestament),
-    Book(id: '2ኛ ወደ ተሰሎንቄ ሰዎች', name: '2ኛ ወደ ተሰሎንቄ ሰዎች', chapterCount: 3, testament: Testament.newTestament),
-    Book(id: '1ኛ ወደ ጢሞቴዎስ', name: '1ኛ ወደ ጢሞቴዎስ', chapterCount: 6, testament: Testament.newTestament),
-    Book(id: '2ኛ ወደ ጢሞቴዎስ', name: '2ኛ ወደ ጢሞቴዎስ', chapterCount: 4, testament: Testament.newTestament),
-    Book(id: 'ወደ ቲቶ', name: 'ወደ ቲቶ', chapterCount: 3, testament: Testament.newTestament),
-    Book(id: 'ወደ ፊልሞና', name: 'ወደ ፊልሞና', chapterCount: 1, testament: Testament.newTestament),
-    Book(id: 'ወደ ዕብራውያን', name: 'ወደ ዕብራውያን', chapterCount: 13, testament: Testament.newTestament),
-    Book(id: 'የያዕቆብ መልእክት', name: 'የያዕቆብ መልእክት', chapterCount: 5, testament: Testament.newTestament),
-    Book(id: '1ኛ የጴጥሮስ መልእክት', name: '1ኛ የጴጥሮስ መልእክት', chapterCount: 5, testament: Testament.newTestament),
-    Book(id: '2ኛ የጴጥሮስ መልእክት', name: '2ኛ የጴጥሮስ መልእክት', chapterCount: 3, testament: Testament.newTestament),
-    Book(id: '1ኛ የዮሐንስ መልእክት', name: '1ኛ የዮሐንስ መልእክት', chapterCount: 5, testament: Testament.newTestament),
-    Book(id: '2ኛ የዮሐንስ መልእክት', name: '2ኛ የዮሐንስ መልእክት', chapterCount: 1, testament: Testament.newTestament),
-    Book(id: '3ኛ የዮሐንስ መልእክት', name: '3ኛ የዮሐንስ መልእክት', chapterCount: 1, testament: Testament.newTestament),
-    Book(id: 'የይሁዳ መልእክት', name: 'የይሁዳ መልእክት', chapterCount: 1, testament: Testament.newTestament),
-    Book(id: 'የዮሐንስ ራእይ', name: 'የዮሐንስ ራእይ', chapterCount: 22, testament: Testament.newTestament),
+  final List<Book> _oromoBooks = [
+    Book(id: 'Uumama', name: 'Uumama', chapterCount: 50, testament: Testament.oldTestament),
+    Book(id: 'Ba\'uu', name: 'Ba\'uu', chapterCount: 40, testament: Testament.oldTestament),
+    Book(id: 'Lewwoota', name: 'Lewwoota', chapterCount: 27, testament: Testament.oldTestament),
+    Book(id: 'Lakkoobsa', name: 'Lakkoobsa', chapterCount: 36, testament: Testament.oldTestament),
+    Book(id: 'Keessa Deebii', name: 'Keessa Deebii', chapterCount: 34, testament: Testament.oldTestament),
+    Book(id: 'Iyaasuu', name: 'Iyaasuu', chapterCount: 24, testament: Testament.oldTestament),
+    Book(id: 'Abbaa Firdii', name: 'Abbaa Firdii', chapterCount: 21, testament: Testament.oldTestament),
+    Book(id: 'Ruut', name: 'Ruut', chapterCount: 4, testament: Testament.oldTestament),
+    Book(id: '1 Saamu\'el', name: '1 Saamu\'el', chapterCount: 31, testament: Testament.oldTestament),
+    Book(id: '2 Saamu\'el', name: '2 Saamu\'el', chapterCount: 24, testament: Testament.oldTestament),
+    Book(id: '1 Mootota', name: '1 Mootota', chapterCount: 22, testament: Testament.oldTestament),
+    Book(id: '2 Mootota', name: '2 Mootota', chapterCount: 25, testament: Testament.oldTestament),
+    Book(id: '1 Seenaa', name: '1 Seenaa', chapterCount: 29, testament: Testament.oldTestament),
+    Book(id: '2 Seenaa', name: '2 Seenaa', chapterCount: 36, testament: Testament.oldTestament),
+    Book(id: 'Izraa', name: 'Izraa', chapterCount: 10, testament: Testament.oldTestament),
+    Book(id: 'Nahimiiyaa', name: 'Nahimiiyaa', chapterCount: 13, testament: Testament.oldTestament),
+    Book(id: 'Asteer', name: 'Asteer', chapterCount: 10, testament: Testament.oldTestament),
+    Book(id: 'Iyoob', name: 'Iyoob', chapterCount: 42, testament: Testament.oldTestament),
+    Book(id: 'Faarfannaa', name: 'Faarfannaa', chapterCount: 150, testament: Testament.oldTestament),
+    Book(id: 'Fakkeenya', name: 'Fakkeenya', chapterCount: 31, testament: Testament.oldTestament),
+    Book(id: 'Lallaba', name: 'Lallaba', chapterCount: 12, testament: Testament.oldTestament),
+    Book(id: 'Weedduu Solomoon', name: 'Weedduu Solomoon', chapterCount: 8, testament: Testament.oldTestament),
+    Book(id: 'Isaayaas', name: 'Isaayaas', chapterCount: 66, testament: Testament.oldTestament),
+    Book(id: 'Ermiyaas', name: 'Ermiyaas', chapterCount: 52, testament: Testament.oldTestament),
+    Book(id: 'Faaruu Ermiyaas', name: 'Faaruu Ermiyaas', chapterCount: 5, testament: Testament.oldTestament),
+    Book(id: 'Hisqi\'el', name: 'Hisqi\'el', chapterCount: 48, testament: Testament.oldTestament),
+    Book(id: 'Daani\'el', name: 'Daani\'el', chapterCount: 12, testament: Testament.oldTestament),
+    Book(id: 'Hoose\'aa', name: 'Hoose\'aa', chapterCount: 14, testament: Testament.oldTestament),
+    Book(id: 'Yo\'el', name: 'Yo\'el', chapterCount: 3, testament: Testament.oldTestament),
+    Book(id: 'Amos', name: 'Amos', chapterCount: 9, testament: Testament.oldTestament),
+    Book(id: 'Obaadiyaa', name: 'Obaadiyaa', chapterCount: 1, testament: Testament.oldTestament),
+    Book(id: 'Yoonaas', name: 'Yoonaas', chapterCount: 4, testament: Testament.oldTestament),
+    Book(id: 'Miikiyaas', name: 'Miikiyaas', chapterCount: 7, testament: Testament.oldTestament),
+    Book(id: 'Naahom', name: 'Naahom', chapterCount: 3, testament: Testament.oldTestament),
+    Book(id: 'Anbaaqom', name: 'Anbaaqom', chapterCount: 3, testament: Testament.oldTestament),
+    Book(id: 'Sefaaniyaa', name: 'Sefaaniyaa', chapterCount: 3, testament: Testament.oldTestament),
+    Book(id: 'Haagee', name: 'Haagee', chapterCount: 2, testament: Testament.oldTestament),
+    Book(id: 'Zakaariyaas', name: 'Zakaariyaas', chapterCount: 14, testament: Testament.oldTestament),
+    Book(id: 'Miilkiyaas', name: 'Miilkiyaas', chapterCount: 4, testament: Testament.oldTestament),
+    Book(id: 'Maatewoos', name: 'Maatewoos', chapterCount: 28, testament: Testament.newTestament),
+    Book(id: 'Maarqos', name: 'Maarqos', chapterCount: 16, testament: Testament.newTestament),
+    Book(id: 'Luqaas', name: 'Luqaas', chapterCount: 24, testament: Testament.newTestament),
+    Book(id: 'Yohaannis', name: 'Yohaannis', chapterCount: 21, testament: Testament.newTestament),
+    Book(id: 'Hojii Ergamtootaa', name: 'Hojii Ergamtootaa', chapterCount: 28, testament: Testament.newTestament),
+    Book(id: 'Roomaa', name: 'Roomaa', chapterCount: 16, testament: Testament.newTestament),
+    Book(id: '1 Qorontoos', name: '1 Qorontoos', chapterCount: 16, testament: Testament.newTestament),
+    Book(id: '2 Qorontoos', name: '2 Qorontoos', chapterCount: 13, testament: Testament.newTestament),
+    Book(id: 'Galaatiyaa', name: 'Galaatiyaa', chapterCount: 6, testament: Testament.newTestament),
+    Book(id: 'Efesoon', name: 'Efesoon', chapterCount: 6, testament: Testament.newTestament),
+    Book(id: 'Filiphisiiyus', name: 'Filiphisiiyus', chapterCount: 4, testament: Testament.newTestament),
+    Book(id: 'Qoloosaayis', name: 'Qoloosaayis', chapterCount: 4, testament: Testament.newTestament),
+    Book(id: '1 Tasaloonqee', name: '1 Tasaloonqee', chapterCount: 5, testament: Testament.newTestament),
+    Book(id: '2 Tasaloonqee', name: '2 Tasaloonqee', chapterCount: 3, testament: Testament.newTestament),
+    Book(id: '1 Ximootewoosi', name: '1 Ximootewoosi', chapterCount: 6, testament: Testament.newTestament),
+    Book(id: '2 Ximootewoosi', name: '2 Ximootewoosi', chapterCount: 4, testament: Testament.newTestament),
+    Book(id: 'Tiitoo', name: 'Tiitoo', chapterCount: 3, testament: Testament.newTestament),
+    Book(id: 'Filmoonaa', name: 'Filmoonaa', chapterCount: 1, testament: Testament.newTestament),
+    Book(id: 'Ibrootaa', name: 'Ibrootaa', chapterCount: 13, testament: Testament.newTestament),
+    Book(id: 'Yaaqoob', name: 'Yaaqoob', chapterCount: 5, testament: Testament.newTestament),
+    Book(id: '1 Pheexiroos', name: '1 Pheexiroos', chapterCount: 5, testament: Testament.newTestament),
+    Book(id: '2 Pheexiroos', name: '2 Pheexiroos', chapterCount: 3, testament: Testament.newTestament),
+    Book(id: '1 Yohaannis', name: '1 Yohaannis', chapterCount: 5, testament: Testament.newTestament),
+    Book(id: '2 Yohaannis', name: '2 Yohaannis', chapterCount: 1, testament: Testament.newTestament),
+    Book(id: '3 Yohaannis', name: '3 Yohaannis', chapterCount: 1, testament: Testament.newTestament),
+    Book(id: 'Yihuudaa', name: 'Yihuudaa', chapterCount: 1, testament: Testament.newTestament),
+    Book(id: 'Mul\'ata Yohaannis', name: 'Mul\'ata Yohaannis', chapterCount: 22, testament: Testament.newTestament),
   ];
 
   List<Book> getBooks(String translation) {
-    if (translation == 'AMHARIC') return _amharicBooks;
+    if (translation.contains('AMHARIC') || translation == 'NASV') {
+      return _amharicBooks;
+    }
+    if (translation == 'MACQUL') {
+      return _oromoBooks;
+    }
     return _englishBooks;
   }
 
@@ -155,11 +160,15 @@ class BibleRepository {
       if (translation == 'KJV') {
         final jsonString = await rootBundle.loadString('assets/data/bible_en_kjv.json');
         final List<dynamic> data = json.decode(jsonString);
-        await _dbHelper.prepopulate(data, 'KJV');
-      } else if (translation == 'AMHARIC') {
+        await _dbHelper.prepopulate(data, translation);
+      } else if (translation == 'AMHARIC_1962') {
         final jsonString = await rootBundle.loadString('assets/data/bible_am_full.json');
         final data = json.decode(jsonString);
-        await _dbHelper.prepopulate(data['books'], 'AMHARIC');
+        await _dbHelper.prepopulate(data['books'], translation);
+      } else if (translation == 'NASV' || translation == 'MACQUL') {
+        // These will be integrated via download logic or added later
+        // For now, they share the same logic structure but need their own assets/APIs
+        debugPrint('Initialization for $translation pending actual dataset integration');
       }
     }
   }
