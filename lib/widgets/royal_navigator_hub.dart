@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
 import '../data/models/bible_models.dart';
+import '../screens/versions_screen.dart';
 
 class RoyalNavigatorHub extends StatefulWidget {
   const RoyalNavigatorHub({super.key});
@@ -55,6 +56,7 @@ class _RoyalNavigatorHubState extends State<RoyalNavigatorHub> {
             child: Column(
               children: [
                 _buildSearchBar(context),
+                _buildVersionDownloaderButton(context),
                 if (_selectedBook == null) _buildReadingStats(context, bible),
                 if (_selectedBook == null) _buildTestamentTabs(context),
                 Expanded(
@@ -346,15 +348,47 @@ class _RoyalNavigatorHubState extends State<RoyalNavigatorHub> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: Colors.white54,
-            fontSize: 8,
-            letterSpacing: 1,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildVersionDownloaderButton(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const VersionsScreen()));
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.download_for_offline, color: theme.colorScheme.primary, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                'DOWNLOAD VERSIONS',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
