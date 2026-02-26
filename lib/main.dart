@@ -16,8 +16,8 @@ void main() async {
   }
   
   final bibleProvider = BibleProvider();
-  // Don't await here to avoid blank screen if network is slow
-  bibleProvider.init();
+  // Load state from session on startup
+  bibleProvider.init(isStartup: true);
 
   runApp(
     MultiProvider(
