@@ -9,12 +9,22 @@ class BookmarksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Bookmarks')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Bookmarks'),
+        backgroundColor: Colors.transparent,
+      ),
       body: Consumer<BibleProvider>(
         builder: (context, bible, child) {
           if (bible.bookmarks.isEmpty) {
-            return const Center(child: Text('No bookmarks saved.'));
+            return Center(
+              child: Text(
+                'No bookmarks saved.',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+              ),
+            );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
