@@ -20,9 +20,7 @@ class BibleProvider with ChangeNotifier {
   String _currentTranslation = 'AMHARIC_1962';
   
   final List<BibleVersion> _availableVersions = [
-    BibleVersion(id: 'MACQUL', name: 'MACQUL', fullname: 'Macaafa Qulqulluu Afaan Oromoo', language: 'Oromo', isDownloaded: false),
     BibleVersion(id: 'AMHARIC_1962', name: 'አማ1962', fullname: 'መጽሐፍ ቅዱስ Haile Selassie (1962)', language: 'Amharic', isDownloaded: true),
-    BibleVersion(id: 'NASV', name: 'NASV', fullname: 'አዲሱ መደበኛ ትርጉም', language: 'Amharic', isDownloaded: false),
     BibleVersion(id: 'KJV', name: 'KJV', fullname: 'King James Version', language: 'English', isDownloaded: true),
   ];
 
@@ -71,10 +69,26 @@ class BibleProvider with ChangeNotifier {
         // Load session only on startup
         final session = await _storageService.loadSession();
         if (session['translation'] != null) {
-          _currentTranslation = session['translation'];
+          final loadedTranslation = session['translation'];
+          // Validate that the loaded translation ID exists in our current list
+          if (_availableVersions.any((v) => v.id == loadedTranslation)) {
+            _currentTranslation = loadedTranslation;
+          } else {
+            // Fallback to default if the ID is no longer valid (e.g., from an old app version)
+            _currentTranslation = 'AMHARIC_1962';
+          }
         }
         savedBookId = session['bookId'];
         savedChapter = session['chapter'];
+      }
+
+      // Check if the current translation is actually downloaded
+      final currentVer = _availableVersions.firstWhere((v) => v.id == _currentTranslation, orElse: () => _availableVersions.first);
+      
+      if (!currentVer.isDownloaded) {
+        // Find the first downloaded version to switch to
+        final downloaded = _availableVersions.firstWhere((v) => v.isDownloaded, orElse: () => _availableVersions[1]); // AM1962 is [1]
+        _currentTranslation = downloaded.id;
       }
 
       _loadingMessage = 'Preparing ${getVersionName(_currentTranslation)}...';
@@ -85,14 +99,11 @@ class BibleProvider with ChangeNotifier {
       await loadBookmarks();
       
       // Load last picked book and chapter or default
-      if (savedBookId != null && savedChapter != null) {
+      if (savedBookId != null && savedChapter != null && _books.any((b) => b.id == savedBookId)) {
         await loadChapter(savedBookId, savedChapter, save: false);
-      } else if (_currentBook == null && _books.isNotEmpty) {
-        // If switching translation, _currentBook is null, so load first book of new translation
+      } else if (_books.isNotEmpty) {
+        // Default to first book of current translation
         await loadChapter(_books.first.id, 1, save: !isStartup);
-      } else if (_currentBook != null && _currentChapter != null) {
-        // This case might happen if init is called but we already have a selection
-        await loadChapter(_currentBook!.id, _currentChapter!, save: !isStartup);
       }
       
       _isInitializing = false;
