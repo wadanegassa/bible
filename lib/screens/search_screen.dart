@@ -25,19 +25,19 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.black.withValues(alpha: 0.98),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black.withValues(alpha: 0.8),
+        backgroundColor: Colors.transparent,
         title: TextField(
           controller: _controller,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+          style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18),
           decoration: InputDecoration(
             hintText: 'Search (e.g., Jesus, John 3:16)',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+            hintStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, size: 20, color: Colors.white),
+                    icon: Icon(Icons.clear, size: 20, color: theme.colorScheme.onSurface),
                     onPressed: () {
                       _controller.clear();
                       context.read<BibleProvider>().search('');
