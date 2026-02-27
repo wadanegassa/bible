@@ -8,6 +8,9 @@ import '../widgets/royal_navigator_hub.dart';
 import '../widgets/verse_action_toolbar.dart';
 import '../widgets/verse_card_creator.dart';
 import 'search_screen.dart';
+import '../providers/theme_provider.dart';
+import 'bookmarks_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -92,7 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             )
                           : bible.errorMessage != null
                               ? SliverFillRemaining(child: _buildErrorView(bible.errorMessage!))
-                              : _buildVersesSliverList(bible),
+                              : bible.verses.isEmpty
+                                  ? SliverFillRemaining(child: _buildEmptyVersesView(context, bible))
+                                  : _buildVersesSliverList(bible),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 120)),
                   ],
@@ -135,16 +140,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMiniNavButton(IconData icon, VoidCallback onTap) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.black.withValues(alpha: 0.5),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: theme.colorScheme.onSurface, size: 20),
       ),
     );
   }
@@ -172,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: const Icon(Icons.auto_stories, color: Colors.black, size: 30),
+        child: Icon(Icons.auto_stories, color: theme.colorScheme.onPrimary, size: 30),
       ),
     );
   }
@@ -180,12 +186,32 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRoyalAppBar(BuildContext context, BibleProvider bible, String bookName, String chapterNum) {
     final theme = Theme.of(context);
     return SliverAppBar(
-      expandedHeight: 120.0,
+      expandedHeight: 110.0,
       floating: true,
       pinned: true,
       stretch: true,
-      centerTitle: true,
-      backgroundColor: theme.scaffoldBackgroundColor.withValues(alpha: 0.9),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      elevation: 0,
+      leadingWidth: 110,
+      leading: Row(
+        children: [
+          const SizedBox(width: 8),
+          IconButton(
+            icon: Icon(Icons.search, color: theme.colorScheme.onSurface, size: 22),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.bookmark_border, color: theme.colorScheme.onSurface, size: 22),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BookmarksScreen()));
+            },
+          ),
+        ],
+      ),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
         title: Column(
@@ -197,37 +223,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2.0,
-                fontSize: 10,
+                fontSize: 9,
               ),
             ),
             Text(
               'Chapter $chapterNum',
               style: theme.textTheme.titleLarge?.copyWith(
-                fontSize: 18,
+                fontSize: 16,
                 color: theme.colorScheme.onSurface,
               ),
             ),
           ],
         ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                theme.colorScheme.primary.withValues(alpha: 0.05),
-                theme.scaffoldBackgroundColor,
-              ],
-            ),
-          ),
-        ),
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.search, color: theme.colorScheme.primary),
+          icon: Icon(Icons.settings_outlined, color: theme.colorScheme.onSurface, size: 22),
           onPressed: () {
             HapticFeedback.lightImpact();
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
           },
         ),
         _buildRoyalLanguagePicker(context, bible),
@@ -239,15 +253,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRoyalLanguagePicker(BuildContext context, BibleProvider bible) {
     final theme = Theme.of(context);
-    final currentVersion = bible.availableVersions.firstWhere((v) => v.id == bible.currentTranslation);
+    final currentVersion = bible.availableVersions.firstWhere(
+      (v) => v.id == bible.currentTranslation,
+      orElse: () => bible.availableVersions.first,
+    );
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF2D0A0A), // Dark red/black background from screenshot
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: PopupMenuButton<String>(
           offset: const Offset(0, 45),
@@ -258,42 +275,77 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   currentVersion.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_drop_down, color: theme.colorScheme.primary, size: 20),
               ],
             ),
           ),
-          onSelected: (String versionId) {
-            bible.setTranslation(versionId);
-          },
           itemBuilder: (BuildContext context) => bible.availableVersions
-              .where((v) => v.isDownloaded)
               .map((version) => PopupMenuItem<String>(
                     value: version.id,
                     child: _buildPopupItem(
+                      context,
                       version.id.contains('AMHARIC') ? Icons.language : Icons.translate,
                       version.fullname,
+                      isDownloaded: version.isDownloaded,
                     ),
                   ))
               .toList(),
+          onSelected: (String versionId) {
+            final version = bible.availableVersions.firstWhere((v) => v.id == versionId);
+            if (version.isDownloaded) {
+              bible.setTranslation(versionId);
+            } else {
+              bible.downloadVersion(version);
+            }
+          },
         ),
       ),
     );
   }
 
-  Widget _buildPopupItem(IconData icon, String text) {
+  Widget _buildPopupItem(BuildContext context, IconData icon, String text, {bool isDownloaded = true}) {
+    final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 18),
+        Icon(icon, size: 18, color: isDownloaded ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.3)),
         const SizedBox(width: 12),
-        Text(text),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(color: isDownloaded ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+          ),
+        ),
+        if (!isDownloaded)
+          Icon(Icons.file_download_outlined, size: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
       ],
+    );
+  }
+
+  Widget _buildEmptyVersesView(BuildContext context, BibleProvider bible) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.auto_stories_outlined, size: 80, color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+          const SizedBox(height: 24),
+          Text(
+            'The Word is waiting...',
+            style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => _showNavigatorHub(context),
+            child: Text('SELECT A BOOK', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 
