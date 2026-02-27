@@ -17,10 +17,10 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'bible_v4.db'); // Use v4 to force fresh start if needed, or version bump
+    String path = join(await getDatabasesPath(), 'bible_v5.db'); 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -45,6 +45,10 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 4) {
+      // Version 4: We want to normalize book IDs to match shorter Amharic names
+      await db.delete('verses'); // Force re-population with normalized IDs
+    }
     if (oldVersion < 2) {
       // Ensure translation column exists
       try {
@@ -135,6 +139,22 @@ class DatabaseHelper {
     await db.delete('verses');
   }
 
+  String _normalizeBookId(String name) {
+    return name
+        .replaceAll('ኦሪት ', '')
+        .replaceAll('መጽሐፈ ', '')
+        .replaceAll('ትንቢተ ', '')
+        .replaceAll('ትንቢት ', '')
+        .replaceAll('የሉቃስ ወንጌል', 'ሉቃስ')
+        .replaceAll('የማቴዎስ ወንጌል', 'ማቴዎስ')
+        .replaceAll('የማርቆስ ወንጌል', 'ማርቆስ')
+        .replaceAll('የዮሐንስ ወንጌል', 'ዮሐንስ')
+        .replaceAll('የሐዋርያት ሥራ', 'ሐዋርያት')
+        .replaceAll('ወልደ ነዌ', '')
+        .replaceAll('።', '')
+        .trim();
+  }
+
   Future<void> prepopulate(List<dynamic> data, String translation) async {
     final db = await database;
     await db.transaction((txn) async {
@@ -162,16 +182,10 @@ class DatabaseHelper {
             }
           }
         }
-      } else if (translation == 'AMHARIC_1962' || 
-                 translation == 'NASV' ||
-                 translation == 'MACQUL') {
+      } else if (translation == 'AMHARIC_1962') {
         final books = data;
         for (var book in books) {
-          String rawBookName = book['title'].toString().trim();
-          if (rawBookName.endsWith('።')) {
-            rawBookName = rawBookName.substring(0, rawBookName.length - 1);
-          }
-          final String bookName = rawBookName.trim();
+          final String bookName = _normalizeBookId(book['title'].toString());
           final chapters = book['chapters'] as List<dynamic>;
           
           for (var chapterData in chapters) {
