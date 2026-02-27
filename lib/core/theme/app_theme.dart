@@ -2,86 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Royal Color Palette
-  static const Color onyxBlack = Color(0xFF000000);
-  static const Color pureWhite = Color(0xFFFFFFFF);
-  static const Color royalGold = Color(0xFFD4AF37);
-  static const Color metallicGold = Color(0xFFFFD700);
-  static const Color deepGold = Color(0xFF996515);
-  static const Color surfaceBlack = Color(0xFF121212);
+  // Refined Color Palette
+  static const Color midnight = Color(0xFF08080C); // Deeper, cooler black
+  static const Color charcoal = Color(0xFF12121A); // Cool dark gray
+  static const Color coolGray = Color(0xFFCBCBCB);
+  static const Color softIvory = Color(0xFFFFFFE3);
+  static const Color mutedBlue = Color(0xFF386087); // More saturated cool blue
 
   static ThemeData lightTheme(double fontSize) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: royalGold,
-        brightness: Brightness.light,
-        surface: pureWhite,
-        onSurface: onyxBlack,
-        primary: deepGold,
-        onPrimary: pureWhite,
-        secondary: onyxBlack,
-        onSecondary: pureWhite,
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
+        primary: mutedBlue,
+        onPrimary: softIvory,
+        surface: softIvory,
+        onSurface: charcoal,
+        secondary: charcoal,
+        onSecondary: softIvory,
+        outline: coolGray,
+        error: Colors.redAccent,
       ),
-      scaffoldBackgroundColor: pureWhite,
-      textTheme: GoogleFonts.playfairDisplayTextTheme().copyWith(
+      scaffoldBackgroundColor: softIvory,
+      textTheme: TextTheme(
         bodyLarge: GoogleFonts.notoSerif(
           fontSize: fontSize,
-          height: 1.8,
-          color: onyxBlack.withValues(alpha: 0.9),
-          letterSpacing: 0.2,
+          height: 1.6,
+          color: charcoal.withValues(alpha: 0.9),
         ),
         bodyMedium: GoogleFonts.notoSerif(
           fontSize: fontSize - 2,
-          height: 1.8,
-          color: onyxBlack.withValues(alpha: 0.7),
+          height: 1.6,
+          color: charcoal.withValues(alpha: 0.7),
         ),
-        titleLarge: GoogleFonts.playfairDisplay(
-          fontWeight: FontWeight.w900,
-          color: deepGold,
-          letterSpacing: -0.5,
-          fontSize: 24,
-        ),
-        headlineMedium: GoogleFonts.playfairDisplay(
+        titleLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w800,
-          color: onyxBlack,
-          letterSpacing: 1.5,
+          color: mutedBlue,
+          fontSize: 22,
+          letterSpacing: -0.5,
         ),
         labelLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          letterSpacing: 1.0,
-          color: onyxBlack,
+          color: charcoal,
+          letterSpacing: 0.5,
         ),
       ),
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        backgroundColor: pureWhite,
+        backgroundColor: softIvory,
         elevation: 0,
-        scrolledUnderElevation: 2,
-        shadowColor: deepGold.withValues(alpha: 0.1),
-        titleTextStyle: GoogleFonts.playfairDisplay(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          color: onyxBlack,
-          letterSpacing: 1.2,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: charcoal,
         ),
-        iconTheme: const IconThemeData(color: onyxBlack),
+        iconTheme: const IconThemeData(color: charcoal),
       ),
       cardTheme: CardThemeData(
-        elevation: 8,
-        shadowColor: deepGold.withValues(alpha: 0.05),
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: royalGold.withValues(alpha: 0.2), width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: coolGray),
         ),
-        color: pureWhite,
-      ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: SegmentedButton.styleFrom(
-          selectedBackgroundColor: onyxBlack,
-          selectedForegroundColor: royalGold,
-          side: const BorderSide(color: onyxBlack),
-        ),
+        color: softIvory,
       ),
     );
   }
@@ -89,75 +72,59 @@ class AppTheme {
   static ThemeData darkTheme(double fontSize) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: royalGold,
-        brightness: Brightness.dark,
-        surface: onyxBlack,
-        onSurface: pureWhite,
-        primary: metallicGold,
-        onPrimary: onyxBlack,
-        secondary: royalGold,
-        onSecondary: onyxBlack,
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: mutedBlue,
+        onPrimary: softIvory,
+        surface: midnight,
+        onSurface: softIvory,
+        secondary: softIvory,
+        onSecondary: midnight,
+        outline: charcoal,
+        error: Colors.redAccent,
       ),
-      scaffoldBackgroundColor: onyxBlack,
-      textTheme: GoogleFonts.playfairDisplayTextTheme().copyWith(
+      scaffoldBackgroundColor: midnight,
+      textTheme: TextTheme(
         bodyLarge: GoogleFonts.notoSerif(
           fontSize: fontSize,
-          height: 1.8,
-          color: pureWhite.withValues(alpha: 0.9),
-          letterSpacing: 0.2,
+          height: 1.5, // Tighter leading
+          color: softIvory.withValues(alpha: 0.95),
         ),
         bodyMedium: GoogleFonts.notoSerif(
           fontSize: fontSize - 2,
-          height: 1.8,
-          color: pureWhite.withValues(alpha: 0.7),
+          height: 1.6,
+          color: softIvory.withValues(alpha: 0.7),
         ),
-        titleLarge: GoogleFonts.playfairDisplay(
-          fontWeight: FontWeight.w900,
-          color: royalGold,
-          letterSpacing: -0.5,
-          fontSize: 24,
-        ),
-        headlineMedium: GoogleFonts.playfairDisplay(
+        titleLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w800,
-          color: royalGold,
-          letterSpacing: 1.5,
+          color: softIvory,
+          fontSize: 22,
+          letterSpacing: -0.5,
         ),
         labelLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          letterSpacing: 1.0,
-          color: royalGold,
+          color: softIvory,
+          letterSpacing: 0.5,
         ),
       ),
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        backgroundColor: onyxBlack,
+        backgroundColor: charcoal,
         elevation: 0,
-        scrolledUnderElevation: 4,
-        shadowColor: royalGold.withValues(alpha: 0.2),
-        titleTextStyle: GoogleFonts.playfairDisplay(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          color: royalGold,
-          letterSpacing: 1.2,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: softIvory,
         ),
-        iconTheme: const IconThemeData(color: royalGold),
+        iconTheme: const IconThemeData(color: softIvory),
       ),
       cardTheme: CardThemeData(
-        elevation: 12,
-        shadowColor: onyxBlack,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: royalGold.withValues(alpha: 0.3), width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: coolGray),
         ),
-        color: surfaceBlack,
-      ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: SegmentedButton.styleFrom(
-          selectedBackgroundColor: royalGold,
-          selectedForegroundColor: onyxBlack,
-          side: const BorderSide(color: royalGold),
-        ),
+        color: charcoal,
       ),
     );
   }
