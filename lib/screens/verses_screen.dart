@@ -45,20 +45,43 @@ class VersesScreen extends StatelessWidget {
                         ),
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: bible.verses.length,
-                      itemBuilder: (context, index) {
-                        final verse = bible.verses[index];
-                        return VerseTile(
-                          verse: verse,
-                          onBookmarkToggle: () {
-                            bible.toggleBookmark(verse);
+                  : bible.verses.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.auto_stories_outlined, size: 64, color: Colors.grey[700]),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Divine text for ${bible.currentTranslation} is being prepared.',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.grey, fontSize: 16),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Coming soon!',
+                                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: bible.verses.length,
+                          itemBuilder: (context, index) {
+                            final verse = bible.verses[index];
+                            return VerseTile(
+                              verse: verse,
+                              onBookmarkToggle: () {
+                                bible.toggleBookmark(verse);
+                              },
+                              onTap: () => VerseActionToolbar.show(context, verse, bible),
+                            );
                           },
-                          onTap: () => VerseActionToolbar.show(context, verse, bible),
-                        );
-                      },
-                    ),
+                        ),
           floatingActionButton: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
