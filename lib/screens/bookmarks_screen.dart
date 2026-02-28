@@ -16,30 +16,36 @@ class BookmarksScreen extends StatelessWidget {
         title: const Text('Bookmarks'),
         backgroundColor: Colors.transparent,
       ),
-      body: Consumer<BibleProvider>(
-        builder: (context, bible, child) {
-          if (bible.bookmarks.isEmpty) {
-            return Center(
-              child: Text(
-                'No bookmarks saved.',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: bible.bookmarks.length,
-            itemBuilder: (context, index) {
-              final verse = bible.bookmarks[index];
-              return VerseTile(
-                verse: verse,
-                showHeader: true,
-                onBookmarkToggle: () => bible.toggleBookmark(verse),
-                onTap: () => VerseActionToolbar.show(context, verse, bible),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Consumer<BibleProvider>(
+            builder: (context, bible, child) {
+              if (bible.bookmarks.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No bookmarks saved.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                  ),
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: bible.bookmarks.length,
+                itemBuilder: (context, index) {
+                  final verse = bible.bookmarks[index];
+                  return VerseTile(
+                    verse: verse,
+                    showHeader: true,
+                    onBookmarkToggle: () => bible.toggleBookmark(verse),
+                    onTap: () => VerseActionToolbar.show(context, verse, bible),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }
