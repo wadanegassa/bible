@@ -36,7 +36,7 @@ class VerseCardCreator extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Column(
@@ -58,7 +58,7 @@ class VerseCardCreator extends StatelessWidget {
                     '"${verse.text}"',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onSurface,
                       fontStyle: FontStyle.italic,
                       fontSize: 22,
                       height: 1.6,
@@ -105,7 +105,7 @@ class VerseCardCreator extends StatelessWidget {
             right: 10,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, color: Colors.white54),
+              icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
             ),
           ),
         ],
@@ -129,7 +129,7 @@ class VerseCardCreator extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           label,
-          style: theme.textTheme.labelSmall?.copyWith(color: Colors.white60),
+          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
         ),
       ],
     );
