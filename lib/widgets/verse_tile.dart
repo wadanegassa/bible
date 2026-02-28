@@ -41,8 +41,7 @@ class VerseTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 0.5), // Minimal gap
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Tighter vertical padding
         decoration: BoxDecoration(
-          color: highlightColor ?? 
-                 (verse.isBookmarked ? theme.colorScheme.primary.withValues(alpha: 0.05) : null),
+          color: verse.isBookmarked ? theme.colorScheme.primary.withValues(alpha: 0.05) : null,
           borderRadius: BorderRadius.circular(0), // Sharp block look as in image
         ),
         child: Column(
@@ -69,7 +68,8 @@ class VerseTile extends StatelessWidget {
                   child: Text(
                     '${verse.verse}',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: highlightColor != null ? Colors.white70 : theme.colorScheme.primary,
+                      color: theme.colorScheme.primary,
+                      backgroundColor: highlightColor?.withValues(alpha: 0.3),
                       fontWeight: FontWeight.w900,
                       fontSize: 12,
                     ),
@@ -81,11 +81,12 @@ class VerseTile extends StatelessWidget {
                     style: theme.textTheme.bodyLarge?.copyWith(
                       height: 1.5,
                       fontSize: themeProvider.fontSize,
-                      color: highlightColor != null ? Colors.white : theme.colorScheme.onSurface,
+                      color: theme.colorScheme.onSurface,
+                      backgroundColor: highlightColor?.withValues(alpha: 0.3),
                     ),
                   ),
                 ),
-                if (verse.isBookmarked && highlightColor == null)
+                if (verse.isBookmarked)
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Icon(
