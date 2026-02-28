@@ -151,17 +151,25 @@ class BibleRepository {
     return _englishBooks;
   }
 
+  static List<dynamic> _parseKjv(String jsonString) => json.decode(jsonString);
+  static List<dynamic> _parseAmharic(String jsonString) {
+    final Map<String, dynamic> data = json.decode(jsonString);
+    return data['books'] as List<dynamic>;
+  }
+
   Future<void> ensureInitialized({String translation = 'KJV'}) async {
     final isPopulated = await _dbHelper.isTranslationPopulated(translation);
     if (!isPopulated) {
       if (translation == 'KJV') {
-        final jsonString = await rootBundle.loadString('assets/data/bible_en_kjv.json');
-        final List<dynamic> data = json.decode(jsonString);
+        final jsonString =
+            await rootBundle.loadString('assets/data/bible_en_kjv.json');
+        final List<dynamic> data = await compute(_parseKjv, jsonString);
         await _dbHelper.prepopulate(data, translation);
       } else if (translation == 'AMHARIC_1962') {
-        final jsonString = await rootBundle.loadString('assets/data/bible_am_full.json');
-        final data = json.decode(jsonString);
-        await _dbHelper.prepopulate(data['books'], translation);
+        final jsonString =
+            await rootBundle.loadString('assets/data/bible_am_full.json');
+        final List<dynamic> data = await compute(_parseAmharic, jsonString);
+        await _dbHelper.prepopulate(data, translation);
       }
     }
   }
