@@ -56,74 +56,80 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
-      body: Consumer<BibleProvider>(
-        builder: (context, bible, child) {
-          if (bible.isInitializing) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 24),
-                  Text(
-                    bible.loadingMessage ?? 'Preparing Bible database...',
-                    style: TextStyle(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (bible.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final results = bible.searchResults;
-
-          if (results.isEmpty && !bible.isLoading) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_outlined,
-                      size: 64,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _controller.text.isEmpty
-                          ? 'Enter a word to search'
-                          : 'No results found',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Consumer<BibleProvider>(
+            builder: (context, bible, child) {
+              if (bible.isInitializing) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 24),
+                      Text(
+                        bible.loadingMessage ?? 'Preparing Bible database...',
+                        style: TextStyle(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.5)),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+                    ],
+                  ),
+                );
+              }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final verse = results[index];
-              return VerseTile(
-                verse: verse,
-                showHeader: true,
-                onBookmarkToggle: () => bible.toggleBookmark(verse),
-                onTap: () => VerseActionToolbar.show(context, verse, bible),
+              if (bible.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final results = bible.searchResults;
+
+              if (results.isEmpty && !bible.isLoading) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_outlined,
+                          size: 64,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _controller.text.isEmpty
+                              ? 'Enter a word to search'
+                              : 'No results found',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: results.length,
+                itemBuilder: (context, index) {
+                  final verse = results[index];
+                  return VerseTile(
+                    verse: verse,
+                    showHeader: true,
+                    onBookmarkToggle: () => bible.toggleBookmark(verse),
+                    onTap: () => VerseActionToolbar.show(context, verse, bible),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }
