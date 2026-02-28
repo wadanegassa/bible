@@ -18,75 +18,71 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          _buildSectionHeader(context, 'Appearance'),
-          const SizedBox(height: 16),
-          _buildSettingTile(
-            context,
-            'Dark Mode',
-            'Toggle between light and dark themes',
-            trailing: Switch.adaptive(
-              value: themeProvider.isDarkMode,
-              activeColor: theme.colorScheme.primary,
-              onChanged: (value) {
-                HapticFeedback.mediumImpact();
-                themeProvider.toggleTheme();
-              },
-            ),
-          ),
-          const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Typography'),
-          const SizedBox(height: 16),
-          _buildSettingTile(
-            context,
-            'Reading Font Size',
-            'Adjust Bible text size (${themeProvider.fontSize.toInt()}px)',
-            subtitleWidget: Slider(
-              value: themeProvider.fontSize,
-              min: 14,
-              max: 32,
-              divisions: 9,
-              activeColor: theme.colorScheme.primary,
-              onChanged: (value) {
-                themeProvider.setFontSize(value);
-              },
-            ),
-          ),
-          const SizedBox(height: 48),
-          _buildSectionHeader(context, 'About'),
-          const SizedBox(height: 16),
-          _buildSettingTile(
-            context,
-            'Amharic Bible',
-            'A minimalist, high-contrast Bible study experience.',
-            trailing: const Icon(Icons.info_outline, size: 20),
-          ),
-          _buildSettingTile(
-            context,
-            'Build Version',
-            '1.2.0 (Theme Refresh)',
-            trailing: Text(
-              'PRO',
-              style: TextStyle(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              _buildSectionHeader(context, 'Appearance'),
+              const SizedBox(height: 16),
+              _buildSettingTile(
+                context,
+                'Dark Mode',
+                'Toggle between light and dark themes',
+                trailing: Switch.adaptive(
+                  value: themeProvider.isDarkMode,
+                  activeColor: theme.colorScheme.primary,
+                  onChanged: (value) {
+                    HapticFeedback.mediumImpact();
+                    themeProvider.toggleTheme();
+                  },
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 60),
-          Center(
-            child: Text(
-              'MADE WITH ❤️ FOR THE WORD',
-              style: theme.textTheme.labelSmall?.copyWith(
-                letterSpacing: 2,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+              const SizedBox(height: 32),
+              _buildSectionHeader(context, 'Typography'),
+              const SizedBox(height: 16),
+              _buildSettingTile(
+                context,
+                'Reading Font Size',
+                'Adjust Bible text size (${themeProvider.fontSize.toInt()}px)',
+                subtitleWidget: Slider(
+                  value: themeProvider.fontSize,
+                  min: 14,
+                  max: 32,
+                  divisions: 9,
+                  activeColor: theme.colorScheme.primary,
+                  onChanged: (value) {
+                    themeProvider.setFontSize(value);
+                  },
+                ),
               ),
-            ),
+              const SizedBox(height: 48),
+              _buildSectionHeader(context, 'About'),
+              const SizedBox(height: 16),
+              _buildSettingTile(
+                context,
+                'Amharic Bible',
+                'A minimalist, high-contrast Bible study experience.',
+                trailing: const Icon(Icons.info_outline, size: 20),
+              ),
+              _buildSettingTile(
+                context,
+                'Build Version',
+                '1.2.0 (Theme Refresh)',
+                trailing: Text(
+                  'PRO',
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 60),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
