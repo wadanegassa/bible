@@ -137,20 +137,28 @@ class _RoyalNavigatorHubState extends State<RoyalNavigatorHub> {
   }
 
   Widget _buildBookMosaic(List<Book> books) {
-    return GridView.builder(
-      key: const ValueKey('bookMosaic'),
-      padding: const EdgeInsets.all(24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.4,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+    final width = MediaQuery.sizeOf(context).width;
+    final crossAxisCount = width > 1200 ? 6 : (width > 800 ? 4 : 2);
+    
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: GridView.builder(
+          key: const ValueKey('bookMosaic'),
+          padding: const EdgeInsets.all(24),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 1.4,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: books.length,
+          itemBuilder: (context, index) {
+            final book = books[index];
+            return _buildBookTile(book);
+          },
+        ),
       ),
-      itemCount: books.length,
-      itemBuilder: (context, index) {
-        final book = books[index];
-        return _buildBookTile(book);
-      },
     );
   }
 
@@ -219,17 +227,22 @@ class _RoyalNavigatorHubState extends State<RoyalNavigatorHub> {
           ),
         ),
         Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(24),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: book.chapterCount,
-            itemBuilder: (context, index) {
-              final chapter = index + 1;
-              return _buildChapterTile(chapter, book);
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth > 800 ? 10 : 5;
+              return GridView.builder(
+                padding: const EdgeInsets.all(24),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: book.chapterCount,
+                itemBuilder: (context, index) {
+                  final chapter = index + 1;
+                  return _buildChapterTile(chapter, book);
+                },
+              );
             },
           ),
         ),
