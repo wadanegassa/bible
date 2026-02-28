@@ -1,26 +1,30 @@
 # Holy Bible (Amharic & English)
 
-A comprehensive Flutter application designed for reading and studying the Bible in Amharic and English. This app offers a clean, user-friendly interface with features for reading chapters, searching for verses, managing bookmarks, and customizing the reading experience.
+A comprehensive, premium Flutter application designed for reading and studying the Bible in Amharic and English. Optimized for all devices with a focus on buttery-smooth performance and luxury aesthetics.
 
 ## Features
 
-*   **Bilingual Support**: Access the Bible in both Amharic and English.
-*   **Easy Navigation**: Browse books, chapters, and verses seamlessly.
+*   **Bilingual Support**: Access the Bible in both Amharic and English (KJV & 1962 Amharic).
+*   **Fully Responsive**: Adaptive layouts that look stunning on phones, tablets, and desktops.
+*   **Premium Highlighting**: Highlight verses with a vibrant, translucent color palette (Rose, Amethyst, Sky, Emerald, etc.) and smart contrast detection.
+*   **Performance Optimized**: 
+    *   Background data processing using Isolates.
+    *   Asynchronous database population for a lag-free experience.
+*   **Easy Navigation**: New "Navigator Hub" with dynamic grid layouts for seamless book and chapter selection.
 *   **Search Functionality**: Quickly find specific verses or keywords.
 *   **Bookmarks**: Save your favorite verses for quick access later.
 *   **Customizable Theme**:
-    *   **Dark/Light Mode**: Toggle between themes for comfortable reading in any environment.
-    *   **Font Size Adjustment**: Increase or decrease text size to suit your preference.
-*   **Clean Architecture**: Built with a maintainable and scalable code structure.
+    *   **Dark/Light Mode**: Fully themed UI that respects light/dark settings.
+    *   **Font Size Adjustment**: Adjustable text sizes for optimal readability.
+*   **Clean Architecture**: Built with a maintainable and scalable code structure (UI → Logic → Data).
 
 ## Tech Stack & Tools
 
 *   **Framework**: [Flutter](https://flutter.dev/) - UI toolkit for building natively compiled applications.
-*   **Language**: [Dart](https://dart.dev/) - The programming language used for Flutter.
-*   **State Management**: [Provider](https://pub.dev/packages/provider) - For managing application state effectively.
-*   **Local Database**: [Sqflite](https://pub.dev/packages/sqflite) - For storing bookmarks locally on the device.
-*   **Networking**: [http](https://pub.dev/packages/http) - For making API requests to fetch Bible content.
-*   **UI Components**: Material Design widgets for a native Android/iOS feel.
+*   **Language**: [Dart](https://dart.dev/) - Modern language with Isolate support for high performance.
+*   **State Management**: [Provider](https://pub.dev/packages/provider) - For reactive state transitions.
+*   **Local Database**: [Sqflite](https://pub.dev/packages/sqflite) - High-performance local storage for offline reading.
+*   **Storage**: [Shared Preferences](https://pub.dev/packages/shared_preferences) - For persisting user settings and session state.
 
 ## Project Structure
 
@@ -28,11 +32,11 @@ The project follows a clean architecture pattern to separate concerns and ensure
 
 ```
 lib/
-├── core/           # Core utilities, constants, and theme configurations
-├── data/           # Data layer: API services, local DB, models, and repositories
-├── providers/      # State management logic
-├── screens/        # UI screens and pages
-└── widgets/        # Reusable UI components
+├── core/           # Services (Storage, Theme), Constants
+├── data/           # Repositories, API, Models, Local DB (SQL)
+├── providers/      # State Management (BibleProvider, ThemeProvider)
+├── screens/        # UI Layers (Home, Search, Bookmarks, Settings)
+└── widgets/        # Reusable UI Components (VerseTile, Toolbars)
 ```
 
 ## Setup Instructions
