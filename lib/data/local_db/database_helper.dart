@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -157,56 +158,77 @@ class DatabaseHelper {
 
   Future<void> prepopulate(List<dynamic> data, String translation) async {
     final db = await database;
+
+    // Offload map creation to a background isolate
+    final List<Map<String, dynamic>> records = await compute(
+      _prepareRecordsInBackground,
+      {'data': data, 'translation': translation},
+    );
+
     await db.transaction((txn) async {
       final batch = txn.batch();
-      if (translation == 'KJV') {
-        for (var book in data) {
-          final bookName = book['name'];
-          final abbrev = book['abbrev'] as String;
-          final chapters = book['chapters'] as List<dynamic>;
-          
-          for (int cIndex = 0; cIndex < chapters.length; cIndex++) {
-            final chapterNum = cIndex + 1;
-            final verses = chapters[cIndex] as List<dynamic>;
-            
-            for (int vIndex = 0; vIndex < verses.length; vIndex++) {
-              batch.insert('verses', {
-                'book_id': abbrev.toUpperCase(),
-                'book_name': bookName,
-                'chapter': chapterNum,
-                'verse': vIndex + 1,
-                'text': verses[vIndex].toString().trim(),
-                'is_bookmarked': 0,
-                'translation': translation,
-              }, conflictAlgorithm: ConflictAlgorithm.replace);
-            }
-          }
-        }
-      } else if (translation == 'AMHARIC_1962') {
-        final books = data;
-        for (var book in books) {
-          final String bookName = _normalizeBookId(book['title'].toString());
-          final chapters = book['chapters'] as List<dynamic>;
-          
-          for (var chapterData in chapters) {
-            final chapterNum = int.tryParse(chapterData['chapter'].toString()) ?? 0;
-            final verses = chapterData['verses'] as List<dynamic>;
-            
-            for (int i = 0; i < verses.length; i++) {
-              batch.insert('verses', {
-                'book_id': bookName,
-                'book_name': bookName,
-                'chapter': chapterNum,
-                'verse': i + 1,
-                'text': verses[i].toString().trim(),
-                'is_bookmarked': 0,
-                'translation': translation,
-              }, conflictAlgorithm: ConflictAlgorithm.replace);
-            }
-          }
-        }
+      for (var record in records) {
+        batch.insert('verses', record,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit(noResult: true);
     });
+  }
+
+  static List<Map<String, dynamic>> _prepareRecordsInBackground(
+      Map<String, dynamic> params) {
+    final data = params['data'] as List<dynamic>;
+    final translation = params['translation'] as String;
+    final List<Map<String, dynamic>> records = [];
+
+    if (translation == 'KJV') {
+      for (var book in data) {
+        final bookName = book['name'];
+        final abbrev = book['abbrev'] as String;
+        final chapters = book['chapters'] as List<dynamic>;
+
+        for (int cIndex = 0; cIndex < chapters.length; cIndex++) {
+          final chapterNum = cIndex + 1;
+          final verses = chapters[cIndex] as List<dynamic>;
+
+          for (int vIndex = 0; vIndex < verses.length; vIndex++) {
+            records.add({
+              'book_id': abbrev.toUpperCase(),
+              'book_name': bookName,
+              'chapter': chapterNum,
+              'verse': vIndex + 1,
+              'text': verses[vIndex].toString().trim(),
+              'is_bookmarked': 0,
+              'translation': translation,
+            });
+          }
+        }
+      }
+    } else if (translation == 'AMHARIC_1962') {
+      final helper = DatabaseHelper._internal();
+      for (var book in data) {
+        final String bookName = helper._normalizeBookId(book['title'].toString());
+        final chapters = book['chapters'] as List<dynamic>;
+
+        for (var chapterData in chapters) {
+          final chapterNum =
+              int.tryParse(chapterData['chapter'].toString()) ?? 0;
+          final verses = chapterData['verses'] as List<dynamic>;
+
+          for (int i = 0; i < verses.length; i++) {
+            records.add({
+              'book_id': bookName,
+              'book_name': bookName,
+              'chapter': chapterNum,
+              'verse': i + 1,
+              'text': verses[i].toString().trim(),
+              'is_bookmarked': 0,
+              'translation': translation,
+            });
+          }
+        }
+      }
+    }
+    return records;
   }
 }
