@@ -60,7 +60,7 @@ class VerseActionToolbar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.9),
+        color: theme.colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
         boxShadow: [
@@ -80,7 +80,7 @@ class VerseActionToolbar extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -92,7 +92,7 @@ class VerseActionToolbar extends StatelessWidget {
                 // Highlight Color Picker
                 _buildColorPicker(context),
                 const SizedBox(height: 20),
-                const Divider(color: Colors.white10),
+                Divider(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
                 const SizedBox(height: 12),
                 
                 // Action Buttons
@@ -137,17 +137,24 @@ class VerseActionToolbar extends StatelessWidget {
   Widget _buildColorPicker(BuildContext context) {
     final colors = {
       'Gold': const Color(0xFFFFD700),
-      'Crimson': const Color(0xFFFF4D4D),
+      'Rose': const Color(0xFFFF69B4),
+      'Amethyst': const Color(0xFF9370DB),
       'Sky': const Color(0xFF00BFFF),
       'Mint': const Color(0xFF00FA9A),
+      'Emerald': const Color(0xFF50C878),
+      'Amber': const Color(0xFFFFBF00),
     };
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildColorItem(context, null, 'None'), // Reset color
-        ...colors.entries.map((e) => _buildColorItem(context, e.value, e.key)),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildColorItem(context, null, 'None'), // Reset color
+          ...colors.entries.map((e) => _buildColorItem(context, e.value, e.key)),
+        ],
+      ),
     );
   }
 
@@ -174,19 +181,19 @@ class VerseActionToolbar extends StatelessWidget {
                 border: Border.all(
                   color: isSelected 
                       ? theme.colorScheme.primary 
-                      : (color == null ? Colors.white30 : Colors.transparent),
+                      : (color == null ? theme.colorScheme.onSurface.withValues(alpha: 0.2) : Colors.transparent),
                   width: isSelected ? 3 : 1,
                 ),
               ),
               child: color == null 
-                  ? const Icon(Icons.format_color_reset, color: Colors.white54, size: 20)
-                  : (isSelected ? const Icon(Icons.check, color: Colors.black, size: 20) : null),
+                  ? Icon(Icons.format_color_reset, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 20)
+                  : (isSelected ? Icon(Icons.check, color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white, size: 20) : null),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: isSelected ? theme.colorScheme.primary : Colors.white54,
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 10,
               ),
             ),
@@ -213,14 +220,14 @@ class VerseActionToolbar extends StatelessWidget {
         children: [
           Icon(
             icon, 
-            color: isActive ? theme.colorScheme.primary : Colors.white70,
+            color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.8),
             size: 24,
           ),
           const SizedBox(height: 6),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: isActive ? theme.colorScheme.primary : Colors.white54,
+              color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
