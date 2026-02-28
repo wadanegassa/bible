@@ -56,58 +56,69 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: Stack(
               children: [
-                CustomScrollView(
-                  slivers: [
-                    if (!_isManuscriptMode)
-                      _buildRoyalAppBar(context, bible, bookName, chapterNum),
-                    if (!_isManuscriptMode)
-                      SliverToBoxAdapter(
-                        child: LinearProgressIndicator(
-                          value: bible.bookProgress,
-                          backgroundColor: Colors.transparent,
-                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary.withValues(alpha: 0.5)),
-                          minHeight: 2,
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: CustomScrollView(
+                      slivers: [
+                        if (!_isManuscriptMode)
+                          _buildRoyalAppBar(context, bible, bookName, chapterNum),
+                        if (!_isManuscriptMode)
+                          SliverToBoxAdapter(
+                            child: LinearProgressIndicator(
+                              value: bible.bookProgress,
+                              backgroundColor: Colors.transparent,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  theme.colorScheme.primary.withValues(alpha: 0.5)),
+                              minHeight: 2,
+                            ),
+                          ),
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          sliver: bible.isInitializing
+                              ? SliverFillRemaining(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const CircularProgressIndicator(),
+                                        if (bible.loadingMessage != null) ...[
+                                          const SizedBox(height: 24),
+                                          Text(
+                                            bible.loadingMessage!,
+                                            textAlign: TextAlign.center,
+                                            style: theme.textTheme.bodyMedium?.copyWith(
+                                              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : bible.errorMessage != null
+                                  ? SliverFillRemaining(child: _buildErrorView(bible.errorMessage!))
+                                  : bible.verses.isEmpty
+                                      ? SliverFillRemaining(child: _buildEmptyVersesView(context, bible))
+                                      : _buildVersesSliverList(bible),
                         ),
-                      ),
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      sliver: bible.isInitializing
-                          ? SliverFillRemaining(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const CircularProgressIndicator(),
-                                    if (bible.loadingMessage != null) ...[
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        bible.loadingMessage!,
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
-                                          letterSpacing: 1.2,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            )
-                          : bible.errorMessage != null
-                              ? SliverFillRemaining(child: _buildErrorView(bible.errorMessage!))
-                              : bible.verses.isEmpty
-                                  ? SliverFillRemaining(child: _buildEmptyVersesView(context, bible))
-                                  : _buildVersesSliverList(bible),
+                        const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                      ],
                     ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                  ],
+                  ),
                 ),
                 if (!_isManuscriptMode)
                   Positioned(
                     bottom: 30,
                     left: 0,
                     right: 0,
-                    child: _buildMagicOrbControl(context, bible),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 800),
+                        child: _buildMagicOrbControl(context, bible),
+                      ),
+                    ),
                   ),
               ],
             ),
