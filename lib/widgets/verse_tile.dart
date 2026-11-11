@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../core/theme/app_theme.dart';
+import '../core/utils/verse_text.dart';
 import '../data/models/bible_models.dart';
+import '../providers/bible_provider.dart';
 import '../providers/theme_provider.dart';
 
 class VerseTile extends StatelessWidget {
@@ -17,12 +20,12 @@ class VerseTile extends StatelessWidget {
     this.showHeader = false,
   });
 
-  Color? _getHighlightColor() {
-    if (verse.highlightColor == null) return null;
+  Color? _highlight() {
+    final raw = verse.highlightColor;
+    if (raw == null) return null;
     try {
-      final hexColor = verse.highlightColor!.replaceAll('#', '');
-      return Color(int.parse('0x$hexColor'));
-    } catch (e) {
+      return Color(int.parse('0x${raw.replaceAll('#', '')}'));
+    } catch (_) {
       return null;
     }
   }
@@ -30,77 +33,88 @@ class VerseTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final highlightColor = _getHighlightColor();
-    
+    final scheme = theme.colorScheme;
+    final fontSize = context.watch<ThemeProvider>().fontSize;
+    final isRtl = context.watch<BibleProvider>().isRtl;
+    final highlight = _highlight();
+    final isDark = theme.brightness == Brightness.dark;
+    final body = cleanVerseText(verse.text);
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(6),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(vertical: 0.5), // Minimal gap
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Tighter vertical padding
+        duration: const Duration(milliseconds: 160),
+        margin: const EdgeInsets.only(bottom: 2),
+        padding: EdgeInsets.fromLTRB(10, showHeader ? 10 : 6, 10, showHeader ? 10 : 6),
         decoration: BoxDecoration(
-          color: verse.isBookmarked ? theme.colorScheme.primary.withValues(alpha: 0.05) : null,
-          borderRadius: BorderRadius.circular(0), // Sharp block look as in image
+          color: highlight?.withValues(alpha: isDark ? 0.22 : 0.26),
+          borderRadius: BorderRadius.circular(6),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showHeader)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  verse.reference.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 30,
+        child: Directionality(
+          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showHeader)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
                   child: Text(
-                    '${verse.verse}',
+                    verse.reference,
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      backgroundColor: highlightColor?.withValues(alpha: 0.3),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
+                      color: scheme.primary,
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Text(
-                    verse.text,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      height: 1.5,
-                      fontSize: themeProvider.fontSize,
-                      color: theme.colorScheme.onSurface,
-                      backgroundColor: highlightColor?.withValues(alpha: 0.3),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          if (!showHeader)
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.baseline,
+                              baseline: TextBaseline.alphabetic,
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.only(end: 7),
+                                child: Text(
+                                  '${verse.verse}',
+                                  style: AppTheme.sans(
+                                    fontSize: (fontSize * 0.62).clamp(11, 15).toDouble(),
+                                    fontWeight: FontWeight.w600,
+                                    color: scheme.primary,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          TextSpan(text: body),
+                        ],
+                      ),
+                      style: AppTheme.serif(
+                        fontSize: fontSize,
+                        height: 1.55,
+                        color: scheme.onSurface,
+                      ),
                     ),
                   ),
-                ),
-                if (verse.isBookmarked)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Icon(
-                      Icons.bookmark,
-                      size: 16,
-                      color: theme.colorScheme.primary,
+                  if (verse.isBookmarked)
+                    Padding(
+                      padding: EdgeInsetsDirectional.only(start: 8, top: 2),
+                      child: Icon(
+                        Icons.bookmark_rounded,
+                        size: 14,
+                        color: scheme.primary,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
 }
