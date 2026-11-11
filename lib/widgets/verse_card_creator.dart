@@ -1,137 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+import '../core/theme/app_theme.dart';
+import '../core/utils/verse_text.dart';
 import '../data/models/bible_models.dart';
 
 class VerseCardCreator extends StatelessWidget {
   final Verse verse;
+  final String shareText;
 
-  const VerseCardCreator({super.key, required this.verse});
+  const VerseCardCreator({
+    super.key,
+    required this.verse,
+    required this.shareText,
+  });
 
-  static void show(BuildContext context, Verse verse) {
-    showDialog(
+  static void show(BuildContext context, Verse verse, {String? shareText}) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) => VerseCardCreator(verse: verse),
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => VerseCardCreator(
+        verse: verse,
+        shareText: shareText ?? '${cleanVerseText(verse.text)}\n\n— ${verse.reference}',
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.2)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(32),
+    final scheme = theme.colorScheme;
+    final messenger = ScaffoldMessenger.of(context);
+    final versionLine = shareText.contains(' · ')
+        ? shareText.substring(shareText.lastIndexOf(' · ') + 3)
+        : null;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Share verse', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.fromLTRB(26, 30, 26, 26),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(30),
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppTheme.radius + 4),
+                border: Border.all(color: scheme.outlineVariant),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Decorative Icon
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
-                    ),
-                    child: Icon(Icons.auto_stories, color: theme.colorScheme.primary, size: 30),
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  // Verse Text
                   Text(
-                    '"${verse.text}"',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 22,
-                      height: 1.6,
-                      fontFamily: 'Noto Serif',
+                    '“',
+                    style: AppTheme.serif(
+                      fontSize: 48,
+                      height: 0.7,
+                      color: scheme.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  
-                  // Reference
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
-                    child: Text(
-                      verse.reference.toUpperCase(),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
+                    child: SingleChildScrollView(
+                      child: Text(
+                        cleanVerseText(verse.text),
+                        style: AppTheme.serif(
+                          fontSize: 21,
+                          height: 1.55,
+                          color: scheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 48),
-                  
-                  // Action Row
+                  const SizedBox(height: 22),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildShareAction(context, Icons.download, 'Save'),
-                      _buildShareAction(context, Icons.copy, 'Copy'),
-                      _buildShareAction(context, Icons.share, 'Share'),
+                      Expanded(
+                        child: Text(
+                          verse.reference,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (versionLine != null)
+                        Text(versionLine, style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-          
-          // Close Button
-          Positioned(
-            top: 10,
-            right: 10,
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.content_copy_rounded, size: 18),
+                    label: const Text('Copy'),
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: shareText));
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      messenger.showSnackBar(const SnackBar(content: Text('Verse copied')));
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.ios_share_rounded, size: 18),
+                    label: const Text('Share'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      SharePlus.instance.share(ShareParams(text: shareText));
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildShareAction(BuildContext context, IconData icon, String label) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
-          ),
-          child: Icon(icon, color: theme.colorScheme.primary, size: 22),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-        ),
-      ],
     );
   }
 }
