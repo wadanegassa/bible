@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../core/theme/app_theme.dart';
+import '../data/models/bible_version_models.dart';
 import '../providers/bible_provider.dart';
-import '../data/models/bible_models.dart';
-import '../widgets/verse_tile.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/app_surface.dart';
 import '../widgets/royal_navigator_hub.dart';
 import '../widgets/verse_action_toolbar.dart';
-import '../widgets/verse_card_creator.dart';
+import '../widgets/verse_tile.dart';
+import 'library_screen.dart';
 import 'search_screen.dart';
-import '../providers/theme_provider.dart';
-import 'bookmarks_screen.dart';
-import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,103 +20,89 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _isManuscriptMode = false;
+  final _scroll = ScrollController();
+  bool _focusMode = false;
+  String? _shownPassage;
 
-  void _showNavigatorHub(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Navigator Hub',
-      pageBuilder: (context, anim1, anim2) => const RoyalNavigatorHub(),
-      transitionDuration: const Duration(milliseconds: 500),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
-            CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic),
-          ),
-          child: child,
-        );
-      },
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _openBookPicker() {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const RoyalNavigatorHub(),
+      ),
     );
+  }
+
+  void _resetScrollOnNewPassage(BibleProvider bible) {
+    final passage =
+        '${bible.currentTranslation}.${bible.currentBook?.id}.${bible.currentChapter}';
+    if (passage == _shownPassage) return;
+    _shownPassage = passage;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<BibleProvider>(
-      builder: (context, bible, child) {
-        final bookName = bible.currentBook?.name ?? '';
-        final chapterNum = bible.currentChapter?.toString() ?? '';
-        final theme = Theme.of(context);
+      builder: (context, bible, _) {
+        _resetScrollOnNewPassage(bible);
+        final ready = !bible.isInitializing &&
+            bible.errorMessage == null &&
+            bible.verses.isNotEmpty;
 
         return Scaffold(
+          drawer: const AppDrawer(current: AppDest.read),
           body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
             onDoubleTap: () {
-              HapticFeedback.heavyImpact();
-              setState(() => _isManuscriptMode = !_isManuscriptMode);
+              HapticFeedback.lightImpact();
+              setState(() => _focusMode = !_focusMode);
             },
+            onHorizontalDragEnd: ready
+                ? (details) {
+                    final v = details.primaryVelocity ?? 0;
+                    if (v.abs() < 450) return;
+                    HapticFeedback.selectionClick();
+                    v < 0 ? bible.nextChapter() : bible.prevChapter();
+                  }
+                : null,
             child: Stack(
               children: [
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: CustomScrollView(
-                      slivers: [
-                        if (!_isManuscriptMode)
-                          _buildRoyalAppBar(context, bible, bookName, chapterNum),
-                        if (!_isManuscriptMode)
-                          SliverToBoxAdapter(
-                            child: LinearProgressIndicator(
-                              value: bible.bookProgress,
-                              backgroundColor: Colors.transparent,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  theme.colorScheme.primary.withValues(alpha: 0.5)),
-                              minHeight: 2,
-                            ),
-                          ),
-                        SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          sliver: bible.isInitializing
-                              ? SliverFillRemaining(
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const CircularProgressIndicator(),
-                                        if (bible.loadingMessage != null) ...[
-                                          const SizedBox(height: 24),
-                                          Text(
-                                            bible.loadingMessage!,
-                                            textAlign: TextAlign.center,
-                                            style: theme.textTheme.bodyMedium?.copyWith(
-                                              color: theme.colorScheme.primary.withValues(alpha: 0.7),
-                                              letterSpacing: 1.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : bible.errorMessage != null
-                                  ? SliverFillRemaining(child: _buildErrorView(bible.errorMessage!))
-                                  : bible.verses.isEmpty
-                                      ? SliverFillRemaining(child: _buildEmptyVersesView(context, bible))
-                                      : _buildVersesSliverList(bible),
-                        ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                      ],
-                    ),
-                  ),
+                CustomScrollView(
+                  controller: _scroll,
+                  slivers: [
+                    if (!_focusMode) _ReaderAppBar(bible: bible),
+                    if (_focusMode)
+                      SliverToBoxAdapter(
+                        child: SizedBox(height: MediaQuery.paddingOf(context).top + 12),
+                      ),
+                    ..._body(context, bible),
+                  ],
                 ),
-                if (!_isManuscriptMode)
+                if (ready && !_focusMode)
                   Positioned(
-                    bottom: 30,
                     left: 0,
                     right: 0,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 800),
-                        child: _buildMagicOrbControl(context, bible),
+                    bottom: 0,
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 22),
+                        child: Center(
+                          child: _PassageControls(
+                            bible: bible,
+                            onPickPassage: _openBookPicker,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -128,289 +114,429 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMagicOrbControl(BuildContext context, BibleProvider bible) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildMiniNavButton(Icons.chevron_left, () {
-              HapticFeedback.lightImpact();
-              bible.prevChapter();
-            }),
-            _buildMagicOrb(context),
-            _buildMiniNavButton(Icons.chevron_right, () {
-              HapticFeedback.lightImpact();
-              bible.nextChapter();
-            }),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMiniNavButton(IconData icon, VoidCallback onTap) {
+  List<Widget> _body(BuildContext context, BibleProvider bible) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
-        ),
-        child: Icon(icon, color: theme.colorScheme.onSurface, size: 20),
-      ),
-    );
-  }
 
-  Widget _buildMagicOrb(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        _showNavigatorHub(context);
-      },
-      child: Container(
-        width: 70,
-        height: 70,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.7)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.5),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Icon(Icons.auto_stories, color: theme.colorScheme.onPrimary, size: 30),
-      ),
-    );
-  }
-
-  Widget _buildRoyalAppBar(BuildContext context, BibleProvider bible, String bookName, String chapterNum) {
-    final theme = Theme.of(context);
-    return SliverAppBar(
-      expandedHeight: 110.0,
-      floating: true,
-      pinned: true,
-      stretch: true,
-      backgroundColor: theme.scaffoldBackgroundColor,
-      elevation: 0,
-      leadingWidth: 110,
-      leading: Row(
-        children: [
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(Icons.search, color: theme.colorScheme.onSurface, size: 22),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.bookmark_border, color: theme.colorScheme.onSurface, size: 22),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const BookmarksScreen()));
-            },
-          ),
-        ],
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              bookName.toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-                fontSize: 9,
-              ),
-            ),
-            Text(
-              'Chapter $chapterNum',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontSize: 16,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.settings_outlined, color: theme.colorScheme.onSurface, size: 22),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-          },
-        ),
-        _buildRoyalLanguagePicker(context, bible),
-        const SizedBox(width: 12),
-      ],
-    );
-  }
-
-
-  Widget _buildRoyalLanguagePicker(BuildContext context, BibleProvider bible) {
-    final theme = Theme.of(context);
-    final currentVersion = bible.availableVersions.firstWhere(
-      (v) => v.id == bible.currentTranslation,
-      orElse: () => bible.availableVersions.first,
-    );
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
-        ),
-        child: PopupMenuButton<String>(
-          offset: const Offset(0, 45),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
+    if (bible.isInitializing) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  currentVersion.name,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.arrow_drop_down, color: theme.colorScheme.primary, size: 20),
+                const SizedBox(height: 16),
+                Text(
+                  bible.loadingMessage ?? 'Opening Bible…',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ),
           ),
-          itemBuilder: (BuildContext context) => bible.availableVersions
-              .map((version) => PopupMenuItem<String>(
-                    value: version.id,
-                    child: _buildPopupItem(
-                      context,
-                      version.id.contains('AMHARIC') ? Icons.language : Icons.translate,
-                      version.fullname,
-                      isDownloaded: version.isDownloaded,
-                    ),
-                  ))
-              .toList(),
-          onSelected: (String versionId) {
-            final version = bible.availableVersions.firstWhere((v) => v.id == versionId);
-            if (version.isDownloaded) {
-              bible.setTranslation(versionId);
-            } else {
-              bible.downloadVersion(version);
-            }
+        ),
+      ];
+    }
+
+    if (bible.errorMessage != null) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: AppEmptyState(
+            icon: Icons.cloud_off_rounded,
+            title: 'This chapter didn’t open',
+            subtitle: bible.errorMessage!,
+            actionLabel: 'Try again',
+            onAction: () => bible.init(),
+          ),
+        ),
+      ];
+    }
+
+    if (bible.verses.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: AppEmptyState(
+            icon: Icons.menu_book_outlined,
+            title: 'Choose where to begin',
+            subtitle: 'Pick a book and chapter to start reading.',
+            actionLabel: 'Browse books',
+            onAction: _openBookPicker,
+          ),
+        ),
+      ];
+    }
+
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+        sliver: SliverToBoxAdapter(
+          child: AppColumn(
+            maxWidth: 680,
+            child: _ChapterHeading(bible: bible),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        sliver: SliverList.builder(
+          itemCount: bible.verses.length,
+          itemBuilder: (context, index) {
+            final verse = bible.verses[index];
+            return AppColumn(
+              maxWidth: 680,
+              child: VerseTile(
+                verse: verse,
+                onBookmarkToggle: () => bible.toggleBookmark(verse),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  VerseActionToolbar.show(context, verse, bible);
+                },
+              ),
+            );
           },
         ),
       ),
-    );
+      SliverToBoxAdapter(
+        child: SizedBox(height: _focusMode ? 48 : 120),
+      ),
+    ];
   }
+}
 
-  Widget _buildPopupItem(BuildContext context, IconData icon, String text, {bool isDownloaded = true}) {
+class _ReaderAppBar extends StatelessWidget {
+  final BibleProvider bible;
+
+  const _ReaderAppBar({required this.bible});
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: isDownloaded ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: isDownloaded ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-          ),
+    final book = bible.currentBook?.name;
+    final chapter = bible.currentChapter;
+    final title = book == null || book.isEmpty
+        ? 'Holy Bible'
+        : '$book ${chapter ?? ''}'.trim();
+
+    return SliverAppBar(
+      floating: true,
+      snap: true,
+      titleSpacing: 0,
+      leading: Builder(
+        builder: (ctx) => IconButton(
+          tooltip: 'Menu',
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            Scaffold.of(ctx).openDrawer();
+          },
         ),
-        if (!isDownloaded)
-          Icon(Icons.file_download_outlined, size: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+      ),
+      title: Text(title, overflow: TextOverflow.ellipsis),
+      actions: [
+        _VersionMenu(bible: bible),
+        IconButton(
+          tooltip: 'Search',
+          icon: const Icon(Icons.search_rounded),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            );
+          },
+        ),
+        const SizedBox(width: 4),
       ],
-    );
-  }
-
-  Widget _buildEmptyVersesView(BuildContext context, BibleProvider bible) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.auto_stories_outlined, size: 80, color: theme.colorScheme.primary.withValues(alpha: 0.2)),
-          const SizedBox(height: 24),
-          Text(
-            'The Word is waiting...',
-            style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => _showNavigatorHub(context),
-            child: Text('SELECT A BOOK', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(2),
+        child: LinearProgressIndicator(
+          value: bible.bookProgress.clamp(0.0, 1.0),
+          minHeight: 2,
+          backgroundColor: Colors.transparent,
+          color: theme.colorScheme.primary.withValues(alpha: 0.55),
+        ),
       ),
     );
   }
+}
 
-  Widget _buildErrorView(String message) {
-    return Center(
-      key: const ValueKey('error'),
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
+class _ChapterHeading extends StatelessWidget {
+  final BibleProvider bible;
+
+  const _ChapterHeading({required this.bible});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final book = bible.currentBook?.name ?? '';
+    final chapter = bible.currentChapter;
+
+    // Same inset as VerseTile content so the header lines up with the verses.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            Text(
+              book,
+              textAlign: TextAlign.start,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
-              child: const Icon(Icons.error_outline, size: 48, color: Colors.red),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 2),
             Text(
-              'Oops! Something went wrong',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              '${chapter ?? ''}',
+              textAlign: TextAlign.start,
+              style: AppTheme.serif(
+                fontSize: 26,
+                fontWeight: FontWeight.w500,
+                height: 1.15,
+                color: scheme.onSurface,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildVersesSliverList(BibleProvider bible) {
-    return SliverList(
-      key: const ValueKey('verses'),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final verse = bible.verses[index];
-          return VerseTile(
-            verse: verse,
-            onBookmarkToggle: () {
-              bible.toggleBookmark(verse);
-            },
+/// Bottom on-screen controls: previous · open books · next.
+class _PassageControls extends StatelessWidget {
+  final BibleProvider bible;
+  final VoidCallback onPickPassage;
+
+  const _PassageControls({
+    required this.bible,
+    required this.onPickPassage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final books = bible.books;
+    final book = bible.currentBook;
+    final chapter = bible.currentChapter ?? 1;
+    final index = book == null ? -1 : books.indexWhere((b) => b.id == book.id);
+    final hasPrev = chapter > 1 || index > 0;
+    final hasNext = book != null &&
+        (chapter < book.chapterCount || (index != -1 && index < books.length - 1));
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _NavCircle(
+            icon: Icons.chevron_left_rounded,
+            tooltip: 'Previous chapter',
+            enabled: hasPrev,
             onTap: () {
-              HapticFeedback.mediumImpact();
-              VerseActionToolbar.show(context, verse, bible);
+              HapticFeedback.selectionClick();
+              bible.prevChapter();
             },
-          );
+          ),
+          Tooltip(
+            message: 'Choose book & chapter',
+            child: Material(
+              color: scheme.primary,
+              shape: const CircleBorder(),
+              elevation: theme.brightness == Brightness.dark ? 6 : 3,
+              shadowColor: Colors.black.withValues(alpha: 0.35),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onPickPassage();
+                },
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Icon(
+                    Icons.auto_stories_rounded,
+                    color: scheme.onPrimary,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _NavCircle(
+            icon: Icons.chevron_right_rounded,
+            tooltip: 'Next chapter',
+            enabled: hasNext,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              bible.nextChapter();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavCircle extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _NavCircle({
+    required this.icon,
+    required this.tooltip,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        shape: CircleBorder(side: BorderSide(color: scheme.outlineVariant)),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: enabled ? onTap : null,
+          child: SizedBox(
+            width: 46,
+            height: 46,
+            child: Icon(
+              icon,
+              size: 22,
+              color: enabled ? scheme.onSurface : scheme.outline,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VersionMenu extends StatelessWidget {
+  final BibleProvider bible;
+
+  const _VersionMenu({required this.bible});
+
+  @override
+  Widget build(BuildContext context) {
+    final versions = bible.versionCardVersions;
+    if (versions.isEmpty) return const SizedBox.shrink();
+    final current = versions.firstWhere(
+      (v) => v.id == bible.currentTranslation,
+      orElse: () => versions.first,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: PopupMenuButton<String>(
+        tooltip: 'Change version',
+        position: PopupMenuPosition.under,
+        offset: const Offset(0, 6),
+        constraints: const BoxConstraints(minWidth: 260, maxWidth: 320),
+        onSelected: (id) {
+          if (id == '__library__') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LibraryScreen()),
+            );
+            return;
+          }
+          HapticFeedback.selectionClick();
+          bible.setTranslation(id);
         },
-        childCount: bible.verses.length,
+        itemBuilder: (context) {
+          final defaults = bible.defaultVersions;
+          final defaultIds = defaults.map((v) => v.id).toSet();
+          final extras = versions.where((v) => !defaultIds.contains(v.id));
+          return [
+            for (final v in defaults) _item(context, v),
+            if (extras.isNotEmpty) const PopupMenuDivider(),
+            for (final v in extras) _item(context, v),
+            const PopupMenuDivider(),
+            PopupMenuItem<String>(
+              value: '__library__',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'More Bibles',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ];
+        },
+        child: IgnorePointer(
+          child: AppPill(
+            label: current.shortName,
+            trailingIcon: Icons.arrow_drop_down_rounded,
+            onTap: () {},
+          ),
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _item(BuildContext context, BibleVersion v) {
+    final theme = Theme.of(context);
+    final selected = v.id == bible.currentTranslation;
+    return PopupMenuItem<String>(
+      value: v.id,
+      height: 58,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 24,
+            child: selected
+                ? Icon(Icons.check_rounded, size: 18, color: theme.colorScheme.primary)
+                : null,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  v.shortName,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: selected ? theme.colorScheme.primary : null,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${v.language} · ${v.fullname}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
