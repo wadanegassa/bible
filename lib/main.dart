@@ -9,14 +9,13 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-  
+
   final bibleProvider = BibleProvider();
-  // Load state from session on startup
   bibleProvider.init(isStartup: true);
 
   runApp(
@@ -35,13 +34,15 @@ class AmharicBibleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, BibleProvider>(
+      builder: (context, themeProvider, bible, child) {
+        final fontSize =
+            themeProvider.fontSize + (bible.familyMode ? 2.0 : 0.0);
         return MaterialApp(
           title: 'Holy Bible',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme(themeProvider.fontSize),
-          darkTheme: AppTheme.darkTheme(themeProvider.fontSize),
+          theme: AppTheme.lightTheme(fontSize),
+          darkTheme: AppTheme.darkTheme(fontSize),
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
           home: const HomeScreen(),
         );
