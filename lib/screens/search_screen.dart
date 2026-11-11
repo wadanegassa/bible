@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/bible_provider.dart';
-import '../widgets/verse_tile.dart';
+import '../widgets/app_surface.dart';
 import '../widgets/verse_action_toolbar.dart';
+import '../widgets/verse_tile.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -13,124 +14,137 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final _controller = TextEditingController();
+  String _submitted = '';
 
-  void _onSearch() {
-    if (_controller.text.isEmpty) return;
-    HapticFeedback.lightImpact();
-    context.read<BibleProvider>().search(_controller.text);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _search([String? value]) {
+    final query = (value ?? _controller.text).trim();
+    if (value != null) {
+      _controller.text = value;
+      _controller.selection = TextSelection.collapsed(offset: value.length);
+    }
+    if (query.isEmpty) return;
+    HapticFeedback.selectionClick();
+    FocusScope.of(context).unfocus();
+    setState(() => _submitted = query);
+    context.read<BibleProvider>().search(query);
+  }
+
+  void _clear() {
+    _controller.clear();
+    setState(() => _submitted = '');
+    context.read<BibleProvider>().search('');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bible = context.watch<BibleProvider>();
+    final results = _submitted.isEmpty ? const [] : bible.searchResults;
+
+    Widget body;
+    if (bible.isLoading && _submitted.isNotEmpty) {
+      body = const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    } else if (_submitted.isEmpty) {
+      body = _Hints(onPick: _search);
+    } else if (results.isEmpty) {
+      body = AppEmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No verses found',
+        subtitle: 'Nothing in ${bible.currentVersion?.shortName ?? 'this Bible'} '
+            'matches “$_submitted”. Try a shorter word.',
+      );
+    } else {
+      body = ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+        itemCount: results.length + 1,
+        itemBuilder: (context, i) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8, left: 4),
+              child: Text(
+                '${results.length} ${results.length == 1 ? 'verse' : 'verses'}'
+                ' in ${bible.currentVersion?.shortName ?? ''}',
+                style: theme.textTheme.bodySmall,
+              ),
+            );
+          }
+          final verse = results[i - 1];
+          return VerseTile(
+            verse: verse,
+            showHeader: true,
+            onBookmarkToggle: () => bible.toggleBookmark(verse),
+            onTap: () => VerseActionToolbar.show(context, verse, bible),
+          );
+        },
+      );
+    }
+
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: TextField(
-          controller: _controller,
-          style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18),
-          decoration: InputDecoration(
-            hintText: 'Search (e.g., Jesus, John 3:16)',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-            suffixIcon: _controller.text.isNotEmpty
-                ? IconButton(
-                    icon: Icon(Icons.clear, size: 20, color: theme.colorScheme.onSurface),
-                    onPressed: () {
-                      _controller.clear();
-                      context.read<BibleProvider>().search('');
-                      setState(() {});
-                    },
-                  )
-                : null,
-          ),
-          onChanged: (_) => setState(() {}),
-          onSubmitted: (_) => _onSearch(),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: theme.colorScheme.primary),
-            onPressed: _onSearch,
-          ),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Consumer<BibleProvider>(
-            builder: (context, bible, child) {
-              if (bible.isInitializing) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 24),
-                      Text(
-                        bible.loadingMessage ?? 'Preparing Bible database...',
-                        style: TextStyle(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.5)),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (bible.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final results = bible.searchResults;
-
-              if (results.isEmpty && !bible.isLoading) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_outlined,
-                          size: 64,
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _controller.text.isEmpty
-                              ? 'Enter a word to search'
-                              : 'No results found',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: TextField(
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.search,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: _search,
+            decoration: InputDecoration(
+              hintText: 'Search the Bible',
+              prefixIcon: const Icon(Icons.search_rounded, size: 20),
+              suffixIcon: _controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear',
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      onPressed: _clear,
                     ),
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: results.length,
-                itemBuilder: (context, index) {
-                  final verse = results[index];
-                  return VerseTile(
-                    verse: verse,
-                    showHeader: true,
-                    onBookmarkToggle: () => bible.toggleBookmark(verse),
-                    onTap: () => VerseActionToolbar.show(context, verse, bible),
-                  );
-                },
-              );
-            },
+            ),
           ),
         ),
       ),
+      body: AppColumn(maxWidth: 720, child: body),
+    );
+  }
+}
+
+class _Hints extends StatelessWidget {
+  final ValueChanged<String> onPick;
+
+  const _Hints({required this.onPick});
+
+  static const _examples = ['love', 'peace', 'faith', 'light', 'shepherd'];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+      children: [
+        Text(
+          'Search for a word or phrase in the version you’re reading.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final word in _examples)
+              AppPill(label: word, onTap: () => onPick(word)),
+          ],
+        ),
+      ],
     );
   }
 }
