@@ -1,4 +1,4 @@
-enum Testament { oldTestament, newTestament }
+enum Testament { oldTestament, newTestament, deuterocanonical }
 
 class Book {
   final String id; // Book ID like "GEN"
@@ -18,7 +18,7 @@ class Book {
       id: json['id'],
       name: json['name'],
       chapterCount: json['chapterCount'] ?? 0,
-      testament: json['testament'] == 'new' ? Testament.newTestament : Testament.oldTestament,
+      testament: testamentFromString(json['testament']?.toString()),
     );
   }
 
@@ -26,7 +26,7 @@ class Book {
     return {
       'id': id,
       'name': name,
-      'testament': testament == Testament.newTestament ? 'new' : 'old',
+      'testament': testamentToString(testament),
     };
   }
 
@@ -34,9 +34,33 @@ class Book {
     return Book(
       id: map['id'],
       name: map['name'],
-      chapterCount: 0, // Not stored in DB
-      testament: map['testament'] == 'new' ? Testament.newTestament : Testament.oldTestament,
+      chapterCount: map['chapter_count'] is int ? map['chapter_count'] as int : 0,
+      testament: testamentFromString(map['testament']?.toString()),
     );
+  }
+
+  static Testament testamentFromString(String? value) {
+    switch (value) {
+      case 'new':
+        return Testament.newTestament;
+      case 'deutero':
+      case 'deuterocanonical':
+      case 'apocrypha':
+        return Testament.deuterocanonical;
+      default:
+        return Testament.oldTestament;
+    }
+  }
+
+  static String testamentToString(Testament testament) {
+    switch (testament) {
+      case Testament.newTestament:
+        return 'new';
+      case Testament.deuterocanonical:
+        return 'deutero';
+      case Testament.oldTestament:
+        return 'old';
+    }
   }
 }
 
